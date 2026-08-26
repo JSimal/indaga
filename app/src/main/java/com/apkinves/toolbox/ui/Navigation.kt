@@ -154,7 +154,7 @@ val TOOLS = listOf(
     ToolEntry(Routes.BATCH_QUERY, "Consulta por lotes", "Varios dominios/IPs a la vez, informe combinado", CAT_GENERAL),
 
     ToolEntry(Routes.WHOIS, "WHOIS", "Datos de registro de dominio o IP", CAT_RED),
-    ToolEntry(Routes.DNS, "DNS Lookup", "Registros A, MX, NS, TXT", CAT_RED),
+    ToolEntry(Routes.DNS, "DNS Lookup", "Registros A, AAAA, CNAME, MX, NS, TXT", CAT_RED),
     ToolEntry(Routes.TRACEROUTE, "Conectividad y latencia", "¿Está el destino alcanzable? ¿Con qué latencia?", CAT_RED),
     ToolEntry(Routes.PORT_SCANNER, "Port Scanner", "Puertos comunes abiertos", CAT_RED),
     ToolEntry(Routes.IP_INFO, "IP Info", "Geolocalización, ISP, VPN/proxy", CAT_RED),

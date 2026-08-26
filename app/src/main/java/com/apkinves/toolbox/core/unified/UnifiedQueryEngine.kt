@@ -1,6 +1,8 @@
 package com.apkinves.toolbox.core.unified
 
+import com.apkinves.toolbox.core.net.AsnLookupClient
 import com.apkinves.toolbox.core.net.DnsClient
+import com.apkinves.toolbox.core.net.HostingPatternDetector
 import com.apkinves.toolbox.core.net.IpInfo
 import com.apkinves.toolbox.core.net.IpInfoClient
 import com.apkinves.toolbox.core.net.PortScanner
@@ -28,6 +30,8 @@ data class UnifiedReport(
     val dnsRecords: Map<DnsClient.RecordType, List<DnsClient.DnsRecord>>,
     val openPorts: List<PortScanner.PortResult>,
     val rawWhois: String,
+    val asnInfo: AsnLookupClient.AsnInfo?,
+    val hostingPattern: String?,
 )
 
 /** Lógica compartida entre la Consulta Única y la Consulta por Lotes. */
@@ -56,10 +60,17 @@ object UnifiedQueryEngine {
             runCatching { PortScanner.scan(ipForChecks ?: value) }.getOrElse { emptyList() }
         }
 
-        val dnsTypes = listOf(DnsClient.RecordType.A, DnsClient.RecordType.AAAA, DnsClient.RecordType.MX, DnsClient.RecordType.NS, DnsClient.RecordType.TXT)
+        val dnsTypes = listOf(DnsClient.RecordType.A, DnsClient.RecordType.AAAA, DnsClient.RecordType.CNAME, DnsClient.RecordType.MX, DnsClient.RecordType.NS, DnsClient.RecordType.TXT)
         val dnsRecords: Map<DnsClient.RecordType, List<DnsClient.DnsRecord>> = if (kind == InputKind.DOMAIN) {
             dnsTypes.associateWith { type -> runCatching { DnsClient.query(value, type) }.getOrElse { emptyList() } }
         } else emptyMap()
+
+        val asnJob = async {
+            ipForChecks?.let { runCatching { AsnLookupClient.lookup(it) }.getOrNull() }
+        }
+
+        val cnameTargets = dnsRecords[DnsClient.RecordType.CNAME]?.map { it.value } ?: emptyList()
+        val hostingPattern = HostingPatternDetector.detect(cnameTargets)
 
         UnifiedReport(
             target = value,
@@ -69,6 +80,8 @@ object UnifiedQueryEngine {
             dnsRecords = dnsRecords,
             openPorts = portsJob.await(),
             rawWhois = rawWhoisJob.await(),
+            asnInfo = asnJob.await(),
+            hostingPattern = hostingPattern,
         )
     }
 
@@ -82,6 +95,8 @@ object UnifiedQueryEngine {
         appendLine(r.rawWhois.take(600))
         appendLine("-- IP Info --")
         r.ipInfo?.let { appendLine("${it.country} · ${it.isp} · proxy=${it.proxy} hosting=${it.hosting}") }
+        r.asnInfo?.let { appendLine("ASN AS${it.asn} (${it.name ?: "?"}) · prefijo ${it.bgpPrefix ?: "?"}") }
+        r.hostingPattern?.let { appendLine("Plataforma detectada por CNAME: $it") }
         appendLine("-- DNS --")
         r.dnsRecords.forEach { (type, records) -> appendLine("$type: ${records.joinToString { rec -> rec.value }}") }
         appendLine("-- Puertos abiertos --")

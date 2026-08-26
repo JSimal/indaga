@@ -13,7 +13,7 @@ import kotlin.random.Random
  */
 object DnsClient {
 
-    enum class RecordType(val code: Int) { A(1), NS(2), MX(15), TXT(16), AAAA(28) }
+    enum class RecordType(val code: Int) { A(1), NS(2), CNAME(5), MX(15), TXT(16), AAAA(28) }
 
     data class DnsRecord(val type: String, val value: String, val ttl: Long)
 
@@ -133,6 +133,7 @@ object DnsClient {
                     "$exch (preferencia $pref)"
                 }
                 2 -> readName() // NS
+                5 -> readName() // CNAME
                 16 -> { // TXT
                     val txtLen = u8()
                     val sb = StringBuilder()

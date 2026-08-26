@@ -38,9 +38,13 @@ fun UnifiedSummaryCards(r: UnifiedReport) {
         if (info == null) {
             Text("Sin datos de IP disponibles.", style = MaterialTheme.typography.bodySmall)
         } else {
+            if (r.hostingPattern != null) {
+                Text("Plataforma detectada: ${r.hostingPattern}", style = MaterialTheme.typography.bodySmall, color = CyberColors.NeonGreen, fontWeight = FontWeight.Bold)
+            }
             InfoRow("IP", info.query)
             InfoRow("Organización / hosting", info.org.ifBlank { info.isp })
             InfoRow("ISP", info.isp)
+            r.asnInfo?.let { InfoRow("ASN", "AS${it.asn}${it.name?.let { n -> " — $n" } ?: ""}") }
             InfoRow("País", "${info.country} (${info.countryCode})")
             InfoRow("Ciudad", info.city)
             val flags = buildList {

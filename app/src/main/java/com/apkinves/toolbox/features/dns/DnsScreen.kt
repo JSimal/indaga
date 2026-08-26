@@ -32,7 +32,7 @@ fun DnsScreen() {
             loading = true
             scope.launch {
                 val domain = target.trim()
-                val types = listOf(DnsClient.RecordType.A, DnsClient.RecordType.MX, DnsClient.RecordType.NS, DnsClient.RecordType.TXT)
+                val types = listOf(DnsClient.RecordType.A, DnsClient.RecordType.AAAA, DnsClient.RecordType.CNAME, DnsClient.RecordType.MX, DnsClient.RecordType.NS, DnsClient.RecordType.TXT)
                 val sb = StringBuilder()
                 types.forEach { type ->
                     val records = runCatching { DnsClient.query(domain, type) }.getOrElse { emptyList() }
