@@ -38,7 +38,7 @@ sealed class UpdateResult {
  */
 object UpdateChecker {
 
-    private const val GITHUB_REPO = "TU_USUARIO/TU_REPO"
+    private const val GITHUB_REPO = "JSimal/indaga"
     private val json = Json { ignoreUnknownKeys = true }
 
     // Se comprueba como mucho una vez por sesión de la app: evita relanzar la
