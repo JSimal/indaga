@@ -24,7 +24,7 @@ import com.apkinves.toolbox.features.batchquery.BatchQueryScreen
 import com.apkinves.toolbox.features.btscan.BtScanScreen
 import com.apkinves.toolbox.features.blacklist.BlacklistScreen
 import com.apkinves.toolbox.features.cidr.CidrScreen
-import com.apkinves.toolbox.features.dns.DnsScreen
+import com.apkinves.toolbox.features.cve.CveScreen
 import com.apkinves.toolbox.features.emailsec.EmailSecScreen
 import com.apkinves.toolbox.features.emailverify.EmailVerifyScreen
 import com.apkinves.toolbox.features.encoder.EncoderScreen
@@ -37,7 +37,6 @@ import com.apkinves.toolbox.features.hash.HashScreen
 import com.apkinves.toolbox.features.httpcodes.HttpCodesScreen
 import com.apkinves.toolbox.features.history.HistoryScreen
 import com.apkinves.toolbox.features.iban.ValidatorsScreen
-import com.apkinves.toolbox.features.ipinfo.IpInfoScreen
 import com.apkinves.toolbox.features.localnet.LocalNetScreen
 import com.apkinves.toolbox.features.metatags.MetaTagsScreen
 import com.apkinves.toolbox.features.nettools.NetToolsScreen
@@ -45,7 +44,6 @@ import com.apkinves.toolbox.features.nfc.NfcScreen
 import com.apkinves.toolbox.features.password.PasswordScreen
 import com.apkinves.toolbox.features.pdfmeta.PdfMetaScreen
 import com.apkinves.toolbox.features.phoneprefix.PhonePrefixScreen
-import com.apkinves.toolbox.features.portscanner.PortScannerScreen
 import com.apkinves.toolbox.features.privacycheck.PrivacyCheckScreen
 import com.apkinves.toolbox.features.qrscan.QrScanScreen
 import com.apkinves.toolbox.features.redirects.RedirectsScreen
@@ -63,7 +61,6 @@ import com.apkinves.toolbox.features.unified.UnifiedQueryScreen
 import com.apkinves.toolbox.features.uptime.UptimeScreen
 import com.apkinves.toolbox.features.watchlist.WatchlistScreen
 import com.apkinves.toolbox.features.wayback.WaybackScreen
-import com.apkinves.toolbox.features.whois.WhoisScreen
 import com.apkinves.toolbox.features.wifirange.WifiRangeScreen
 import com.apkinves.toolbox.features.wifiscan.WifiScanScreen
 
@@ -71,11 +68,7 @@ object Routes {
     const val HOME = "home"
     const val UNIFIED = "unified"
     const val BATCH_QUERY = "batch_query"
-    const val WHOIS = "whois"
-    const val DNS = "dns"
     const val TRACEROUTE = "traceroute"
-    const val PORT_SCANNER = "port_scanner"
-    const val IP_INFO = "ip_info"
     const val CIDR = "cidr"
     const val HASH = "hash"
     const val ENCODER = "encoder"
@@ -121,6 +114,7 @@ object Routes {
     const val PRIVACY_CHECK = "privacy_check"
     const val WATCHLIST = "watchlist"
     const val QR_SCAN = "qr_scan"
+    const val CVE = "cve"
 }
 
 data class ToolEntry(val route: String, val title: String, val description: String, val category: String)
@@ -153,11 +147,7 @@ val TOOLS = listOf(
     ToolEntry(Routes.WATCHLIST, "Vigilancia", "Avisos si cambia una web o aparecen subdominios nuevos", CAT_GENERAL),
     ToolEntry(Routes.BATCH_QUERY, "Consulta por lotes", "Varios dominios/IPs a la vez, informe combinado", CAT_GENERAL),
 
-    ToolEntry(Routes.WHOIS, "WHOIS", "Datos de registro de dominio o IP", CAT_RED),
-    ToolEntry(Routes.DNS, "DNS Lookup", "Registros A, AAAA, CNAME, MX, NS, TXT", CAT_RED),
     ToolEntry(Routes.TRACEROUTE, "Conectividad y latencia", "¿Está el destino alcanzable? ¿Con qué latencia?", CAT_RED),
-    ToolEntry(Routes.PORT_SCANNER, "Port Scanner", "Puertos comunes abiertos", CAT_RED),
-    ToolEntry(Routes.IP_INFO, "IP Info", "Geolocalización, ISP, VPN/proxy", CAT_RED),
     ToolEntry(Routes.CIDR, "Calculadora CIDR", "Rango, máscara, hosts usables", CAT_RED),
     ToolEntry(Routes.BLACKLIST, "Listas negras", "¿Está la IP en alguna DNSBL?", CAT_RED),
     ToolEntry(Routes.UPTIME, "¿Está caído?", "Disponibilidad y latencia de una web", CAT_RED),
@@ -165,6 +155,7 @@ val TOOLS = listOf(
     ToolEntry(Routes.SUBDOMAINS, "Subdominios", "Vía Certificate Transparency", CAT_WEB),
     ToolEntry(Routes.SSL_CERT, "Certificado SSL", "Caducidad y cadena de confianza", CAT_WEB),
     ToolEntry(Routes.TECH_DETECTOR, "Detector de tecnologías", "CMS, frameworks, analítica", CAT_WEB),
+    ToolEntry(Routes.CVE, "Vulnerabilidades (CVE)", "Busca por tecnología/versión en la NVD del NIST", CAT_WEB),
     ToolEntry(Routes.EMAIL_SEC, "Seguridad de email", "SPF/DMARC de un dominio", CAT_WEB),
     ToolEntry(Routes.SITE_FILES, "robots.txt / sitemap", "Ficheros públicos de un sitio", CAT_WEB),
     ToolEntry(Routes.REDIRECTS, "Redirecciones", "Traza la cadena completa", CAT_WEB),
@@ -244,11 +235,7 @@ fun ToolboxApp() {
             composable(Routes.HOME) { HomeScreen(navController) }
             composable(Routes.UNIFIED) { UnifiedQueryScreen() }
             composable(Routes.BATCH_QUERY) { BatchQueryScreen() }
-            composable(Routes.WHOIS) { WhoisScreen() }
-            composable(Routes.DNS) { DnsScreen() }
             composable(Routes.TRACEROUTE) { TracerouteScreen() }
-            composable(Routes.PORT_SCANNER) { PortScannerScreen() }
-            composable(Routes.IP_INFO) { IpInfoScreen() }
             composable(Routes.CIDR) { CidrScreen() }
             composable(Routes.HASH) { HashScreen() }
             composable(Routes.ENCODER) { EncoderScreen() }
@@ -258,6 +245,7 @@ fun ToolboxApp() {
             composable(Routes.SUBDOMAINS) { SubdomainsScreen() }
             composable(Routes.SSL_CERT) { SslCertScreen() }
             composable(Routes.TECH_DETECTOR) { TechDetectorScreen() }
+            composable(Routes.CVE) { CveScreen() }
             composable(Routes.EMAIL_SEC) { EmailSecScreen() }
             composable(Routes.SITE_FILES) { SiteFilesScreen() }
             composable(Routes.REDIRECTS) { RedirectsScreen() }

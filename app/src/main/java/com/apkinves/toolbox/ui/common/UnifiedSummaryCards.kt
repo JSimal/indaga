@@ -47,6 +47,9 @@ fun UnifiedSummaryCards(r: UnifiedReport) {
             r.asnInfo?.let { InfoRow("ASN", "AS${it.asn}${it.name?.let { n -> " — $n" } ?: ""}") }
             InfoRow("País", "${info.country} (${info.countryCode})")
             InfoRow("Ciudad", info.city)
+            InfoRow("Código postal", info.zip)
+            if (info.lat != 0.0 || info.lon != 0.0) InfoRow("Coordenadas", "${info.lat}, ${info.lon}")
+            InfoRow("Zona horaria", info.timezone)
             val flags = buildList {
                 if (info.proxy) add("VPN/Proxy detectado")
                 if (info.hosting) add("IP de datacenter/hosting")
