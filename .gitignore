@@ -11,3 +11,4 @@ captures/
 *.jks
 !debug.keystore
 /keystore/
+*.apk
