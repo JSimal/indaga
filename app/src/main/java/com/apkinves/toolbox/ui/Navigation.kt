@@ -8,16 +8,29 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.apkinves.toolbox.BuildConfig
 import com.apkinves.toolbox.R
+import com.apkinves.toolbox.core.remote.AppStatus
+import com.apkinves.toolbox.core.remote.AppStatusClient
 import com.apkinves.toolbox.features.apkanalyzer.ApkAnalyzerScreen
 import com.apkinves.toolbox.features.atmfinder.AtmFinderScreen
 import com.apkinves.toolbox.features.batchquery.BatchQueryScreen
@@ -196,9 +209,49 @@ val TOOLS = listOf(
     ToolEntry(Routes.PRIVACY_CHECK, "Qué expone tu conexión", "IP pública, ISP, DNS en uso", CAT_EXTRAS),
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ToolboxApp() {
+    var status by remember { mutableStateOf<AppStatus?>(null) }
+
+    LaunchedEffect(Unit) {
+        status = AppStatusClient.fetch()
+    }
+
+    val current = status
+    val blocked = current != null && (!current.enabled || (current.minVersionCode > 0 && BuildConfig.VERSION_CODE < current.minVersionCode))
+
+    if (blocked) {
+        BlockedScreen(current!!.message.ifBlank { "Esta versión de Indaga ya no está disponible. Actualiza a la última versión." })
+    } else {
+        ToolboxNavigation()
+    }
+}
+
+@Composable
+private fun BlockedScreen(message: String) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("▸ INDAGA", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
+        Text(
+            message,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            modifier = Modifier.padding(top = 16.dp, bottom = 16.dp),
+        )
+        Button(onClick = {
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/JSimal/indaga/releases"))
+            runCatching { context.startActivity(intent) }
+        }) { Text("Ir a la página de descargas") }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ToolboxNavigation() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: Routes.HOME
