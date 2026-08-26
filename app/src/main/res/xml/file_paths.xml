@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- El APK descargado se guarda en la caché interna, en la subcarpeta "updates". -->
+    <cache-path name="updates" path="updates/" />
+</paths>

@@ -1,7 +1,5 @@
 package com.apkinves.toolbox.ui
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,6 +19,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -30,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,8 +41,14 @@ import androidx.compose.ui.unit.dp
 import com.apkinves.toolbox.BuildConfig
 import com.apkinves.toolbox.R
 import com.apkinves.toolbox.data.FavoritesRepository
+import com.apkinves.toolbox.features.update.ApkDownloader
+import com.apkinves.toolbox.features.update.ApkInstaller
+import com.apkinves.toolbox.features.update.DownloadState
 import com.apkinves.toolbox.features.update.UpdateChecker
 import com.apkinves.toolbox.features.update.UpdateResult
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import java.io.File
 
 @Composable
 fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
@@ -80,24 +86,7 @@ fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
         }
 
         updateAvailable?.let { update ->
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                ) {
-                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            "🚀 Actualización disponible: ${update.release.tag_name}",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                        Button(onClick = {
-                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(update.apkUrl))) }
-                        }) { Text("Descargar") }
-                    }
-                }
-            }
+            item { UpdateBanner(update) }
         }
 
         if (query.isBlank() && favoriteTools.isNotEmpty()) {
@@ -133,6 +122,75 @@ fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
             ) {
                 Text("▸ INDAGA v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 Text("Creado por Simal", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+private sealed class UpdateUiState {
+    object Idle : UpdateUiState()
+    data class Downloading(val progress: Float) : UpdateUiState()
+    data class ReadyToInstall(val file: File) : UpdateUiState()
+    data class Error(val message: String) : UpdateUiState()
+}
+
+@Composable
+private fun UpdateBanner(update: UpdateResult.UpdateAvailable) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var state by remember { mutableStateOf<UpdateUiState>(UpdateUiState.Idle) }
+
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                "🚀 Actualización disponible: ${update.release.tag_name}",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+
+            when (val s = state) {
+                is UpdateUiState.Idle -> {
+                    Button(onClick = {
+                        scope.launch {
+                            ApkDownloader.download(context, update.apkUrl, "indaga_update.apk").collect { ds ->
+                                state = when (ds) {
+                                    is DownloadState.Progress -> {
+                                        val total = ds.totalBytes
+                                        UpdateUiState.Downloading(if (total > 0) ds.bytesRead.toFloat() / total else 0f)
+                                    }
+                                    is DownloadState.Done -> UpdateUiState.ReadyToInstall(ds.file)
+                                    is DownloadState.Failed -> UpdateUiState.Error(ds.message)
+                                }
+                            }
+                        }
+                    }) { Text("Descargar dentro de la app") }
+                }
+                is UpdateUiState.Downloading -> {
+                    LinearProgressIndicator(progress = { s.progress }, modifier = Modifier.fillMaxWidth())
+                    Text("${(s.progress * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
+                }
+                is UpdateUiState.ReadyToInstall -> {
+                    if (!ApkInstaller.canInstallPackages(context)) {
+                        Text(
+                            "Falta autorizar a Indaga a instalar apps (una sola vez).",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        Button(onClick = { ApkInstaller.requestInstallPermission(context) }) {
+                            Text("Autorizar instalación")
+                        }
+                    }
+                    Button(onClick = { ApkInstaller.install(context, s.file) }) {
+                        Text("Instalar ahora")
+                    }
+                }
+                is UpdateUiState.Error -> {
+                    Text("Error al descargar: ${s.message}", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    Button(onClick = { state = UpdateUiState.Idle }) { Text("Reintentar") }
+                }
             }
         }
     }

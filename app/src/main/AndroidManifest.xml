@@ -13,6 +13,12 @@
          tiempo de ejecución, no al abrir la app. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Solo permite invocar la pantalla de instalación del sistema para el
+         APK que la propia app descarga desde su Release de GitHub; no
+         permite instalar nada sin que el usuario confirme el diálogo final,
+         eso Android no lo deja saltar nunca. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <!-- Escaneo de WiFi cercanas: Android exige ubicación para esto (los SSIDs
          pueden usarse para inferir localización). Se pide en tiempo de
          ejecución, solo al entrar en esa herramienta, con explicación previa. -->
@@ -51,5 +57,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>

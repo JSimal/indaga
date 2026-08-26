@@ -42,8 +42,27 @@ object RdapClient {
         fetch("https://rdap.org/domain/${domain.trim()}")
     }
 
+    // rdap.org redirige de forma fiable para dominios, pero para IPs falla con
+    // más frecuencia (según el registro regional que gestione ese rango). Si
+    // falla, se prueba directamente contra cada RIR: solo uno de ellos tendrá
+    // esa IP (los demás devuelven 404, que simplemente se descarta y se sigue).
+    private val IP_RDAP_SERVERS = listOf(
+        "https://rdap.org/ip",
+        "https://rdap.arin.net/registry/ip",
+        "https://rdap.db.ripe.net/ip",
+        "https://rdap.apnic.net/ip",
+        "https://rdap.lacnic.net/rdap/ip",
+        "https://rdap.afrinic.net/rdap/ip",
+    )
+
     suspend fun lookupIpStructured(ip: String): Result<RdapSummary> = withContext(Dispatchers.IO) {
-        fetch("https://rdap.org/ip/${ip.trim()}")
+        var lastFailure: Result<RdapSummary>? = null
+        for (base in IP_RDAP_SERVERS) {
+            val result = fetch("$base/${ip.trim()}")
+            if (result.isSuccess) return@withContext result
+            lastFailure = result
+        }
+        lastFailure ?: Result.failure(IllegalStateException("Sin servidores RDAP disponibles"))
     }
 
     private fun fetch(url: String): Result<RdapSummary> = runCatching {
