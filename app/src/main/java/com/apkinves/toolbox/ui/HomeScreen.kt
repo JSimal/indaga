@@ -1,0 +1,189 @@
+package com.apkinves.toolbox.ui
+
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.apkinves.toolbox.BuildConfig
+import com.apkinves.toolbox.R
+import com.apkinves.toolbox.data.FavoritesRepository
+import com.apkinves.toolbox.features.update.UpdateChecker
+import com.apkinves.toolbox.features.update.UpdateResult
+
+@Composable
+fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
+    val context = LocalContext.current
+    val favoritesRepo = remember { FavoritesRepository(context) }
+    val favorites by favoritesRepo.favorites.collectAsState()
+    var updateAvailable by remember { mutableStateOf<UpdateResult.UpdateAvailable?>(null) }
+    var query by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        val result = UpdateChecker.checkForUpdate(BuildConfig.VERSION_NAME)
+        if (result is UpdateResult.UpdateAvailable) updateAvailable = result
+    }
+
+    val filtered = if (query.isBlank()) tools else tools.filter {
+        it.title.contains(query, ignoreCase = true) || it.description.contains(query, ignoreCase = true)
+    }
+    val favoriteTools = tools.filter { it.route in favorites }
+    val grouped = filtered.groupBy { it.category }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        item { androidx.compose.foundation.layout.Spacer(Modifier.padding(top = 8.dp)) }
+
+        item {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                label = { Text("Buscar herramienta...") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            )
+        }
+
+        updateAvailable?.let { update ->
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                ) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            "🚀 Actualización disponible: ${update.release.tag_name}",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                        Button(onClick = {
+                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(update.apkUrl))) }
+                        }) { Text("Descargar") }
+                    }
+                }
+            }
+        }
+
+        if (query.isBlank() && favoriteTools.isNotEmpty()) {
+            item {
+                CategoryHeader(emoji = "⭐", title = "Favoritos", color = com.apkinves.toolbox.ui.theme.CyberColors.NeonAmber)
+            }
+            items(favoriteTools) { tool ->
+                ToolCard(tool, com.apkinves.toolbox.ui.theme.CyberColors.NeonAmber, isFavorite = true, onToolClick = onToolClick) {
+                    favoritesRepo.toggle(tool.route)
+                }
+            }
+        }
+
+        grouped.forEach { (category, toolsInCategory) ->
+            val style = CATEGORY_STYLES[category]
+            item { CategoryHeader(emoji = style?.emoji ?: "", title = category, color = style?.color ?: MaterialTheme.colorScheme.primary) }
+            items(toolsInCategory) { tool ->
+                val accent = style?.color ?: MaterialTheme.colorScheme.primary
+                ToolCard(tool, accent, isFavorite = tool.route in favorites, onToolClick = onToolClick) {
+                    favoritesRepo.toggle(tool.route)
+                }
+            }
+        }
+
+        if (query.isNotBlank() && filtered.isEmpty()) {
+            item { Text("Sin resultados para \"$query\"", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 16.dp)) }
+        }
+
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text("▸ INDAGA v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                Text("Creado por Simal", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryHeader(emoji: String, title: String, color: androidx.compose.ui.graphics.Color) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(top = 16.dp, bottom = 6.dp),
+    ) {
+        Box(modifier = Modifier.width(4.dp).fillMaxHeight().background(color, RoundedCornerShape(2.dp)))
+        Text(
+            "$emoji  $title",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 10.dp),
+        )
+    }
+}
+
+@Composable
+private fun ToolCard(
+    tool: ToolEntry,
+    accent: androidx.compose.ui.graphics.Color,
+    isFavorite: Boolean,
+    onToolClick: (String) -> Unit,
+    onToggleFavorite: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .border(1.dp, accent.copy(alpha = 0.25f), MaterialTheme.shapes.medium)
+            .clickable { onToolClick(tool.route) },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(modifier = Modifier.width(4.dp).fillMaxHeight().background(accent))
+            Column(modifier = Modifier.padding(16.dp).weight(1f)) {
+                Text(tool.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text(tool.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            IconButton(onClick = onToggleFavorite) {
+                Icon(
+                    painterResource(if (isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline),
+                    contentDescription = if (isFavorite) "Quitar de favoritos" else "Añadir a favoritos",
+                    tint = if (isFavorite) com.apkinves.toolbox.ui.theme.CyberColors.NeonAmber else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}

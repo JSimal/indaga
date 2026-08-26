@@ -1,0 +1,94 @@
+package com.apkinves.toolbox.ui.common
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.apkinves.toolbox.core.unified.UnifiedReport
+import com.apkinves.toolbox.ui.theme.CyberColors
+
+@Composable
+fun UnifiedSummaryCards(r: UnifiedReport) {
+    InfoCard(title = "📋 Registro del dominio/IP") {
+        val rdap = r.rdap
+        if (rdap == null) {
+            Text("No se pudo obtener información estructurada (puede seguir disponible en el WHOIS en crudo).", style = MaterialTheme.typography.bodySmall)
+        } else {
+            InfoRow("Registrador", rdap.registrar)
+            InfoRow("Nombre/Handle", rdap.name ?: rdap.handle)
+            InfoRow("País", rdap.country)
+            InfoRow("Fecha de alta", rdap.registeredDate?.take(10))
+            InfoRow("Fecha de expiración", rdap.expiresDate?.take(10))
+            InfoRow("Última modificación", rdap.lastChangedDate?.take(10))
+            if (rdap.statuses.isNotEmpty()) InfoRow("Estado", rdap.statuses.joinToString(", "))
+            if (rdap.nameservers.isNotEmpty()) InfoRow("Servidores DNS", rdap.nameservers.joinToString("\n"))
+        }
+    }
+
+    InfoCard(title = "🖥️ Hosting y red") {
+        val info = r.ipInfo
+        if (info == null) {
+            Text("Sin datos de IP disponibles.", style = MaterialTheme.typography.bodySmall)
+        } else {
+            InfoRow("IP", info.query)
+            InfoRow("Organización / hosting", info.org.ifBlank { info.isp })
+            InfoRow("ISP", info.isp)
+            InfoRow("País", "${info.country} (${info.countryCode})")
+            InfoRow("Ciudad", info.city)
+            val flags = buildList {
+                if (info.proxy) add("VPN/Proxy detectado")
+                if (info.hosting) add("IP de datacenter/hosting")
+                if (info.mobile) add("Red móvil")
+            }
+            if (flags.isNotEmpty()) {
+                Text(flags.joinToString("  •  "), style = MaterialTheme.typography.bodySmall, color = CyberColors.NeonAmber, fontWeight = FontWeight.Bold)
+            } else {
+                Text("Sin indicios de VPN/proxy/hosting.", style = MaterialTheme.typography.bodySmall, color = CyberColors.NeonGreen)
+            }
+        }
+    }
+
+    if (r.dnsRecords.isNotEmpty()) {
+        InfoCard(title = "🌐 Registros DNS") {
+            r.dnsRecords.forEach { (type, records) ->
+                InfoRow(type.name, if (records.isEmpty()) "(sin registros)" else records.joinToString("\n") { it.value })
+            }
+        }
+    }
+
+    InfoCard(title = "🔓 Puertos comunes") {
+        val open = r.openPorts.filter { it.open }
+        if (open.isEmpty()) Text("Ninguno de los puertos comunes está abierto.", style = MaterialTheme.typography.bodySmall)
+        else Text(open.joinToString("\n") { "${it.port}/tcp — ${it.service}" }, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+fun InfoCard(title: String, content: @Composable () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            content()
+        }
+    }
+}
+
+@Composable
+fun InfoRow(label: String, value: String?) {
+    if (value.isNullOrBlank()) return
+    Column {
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.bodySmall)
+    }
+}
