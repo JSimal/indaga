@@ -38,6 +38,7 @@ import com.apkinves.toolbox.features.btscan.BtScanScreen
 import com.apkinves.toolbox.features.blacklist.BlacklistScreen
 import com.apkinves.toolbox.features.cidr.CidrScreen
 import com.apkinves.toolbox.features.cve.CveScreen
+import com.apkinves.toolbox.features.dorks.DorkScreen
 import com.apkinves.toolbox.features.emailsec.EmailSecScreen
 import com.apkinves.toolbox.features.emailverify.EmailVerifyScreen
 import com.apkinves.toolbox.features.encoder.EncoderScreen
@@ -71,6 +72,7 @@ import com.apkinves.toolbox.features.traceroute.TracerouteScreen
 import com.apkinves.toolbox.features.typosquat.TyposquatScreen
 import com.apkinves.toolbox.features.unified.UnifiedQueryScreen
 import com.apkinves.toolbox.features.uptime.UptimeScreen
+import com.apkinves.toolbox.features.username.UsernameCheckScreen
 import com.apkinves.toolbox.features.watchlist.WatchlistScreen
 import com.apkinves.toolbox.features.wayback.WaybackScreen
 import com.apkinves.toolbox.features.wifirange.WifiRangeScreen
@@ -126,6 +128,8 @@ object Routes {
     const val WATCHLIST = "watchlist"
     const val QR_SCAN = "qr_scan"
     const val CVE = "cve"
+    const val DORKS = "dorks"
+    const val USERNAME_CHECK = "username_check"
 }
 
 data class ToolEntry(val route: String, val title: String, val description: String, val category: String)
@@ -168,6 +172,8 @@ val TOOLS = listOf(
     ToolEntry(Routes.WAYBACK, "Wayback Machine", "Copia archivada más cercana", CAT_WEB),
     ToolEntry(Routes.META_TAGS, "Meta tags / Open Graph", "Cómo se comparte una URL", CAT_WEB),
     ToolEntry(Routes.RSS, "Lector RSS/Atom", "Feeds de un sitio", CAT_WEB),
+    ToolEntry(Routes.DORKS, "Google/Bing Dorks", "Reconocimiento pasivo sobre un dominio", CAT_WEB),
+    ToolEntry(Routes.USERNAME_CHECK, "Buscador de username", "¿Existe ese usuario en otras plataformas?", CAT_WEB),
 
     ToolEntry(Routes.TRACEROUTE, "Conectividad y latencia", "¿Está el destino alcanzable? ¿Con qué latencia?", CAT_RED),
     ToolEntry(Routes.CIDR, "Calculadora CIDR", "Rango, máscara, hosts usables", CAT_RED),
@@ -304,6 +310,8 @@ private fun ToolboxNavigation() {
             composable(Routes.WAYBACK) { WaybackScreen() }
             composable(Routes.META_TAGS) { MetaTagsScreen() }
             composable(Routes.RSS) { RssScreen() }
+            composable(Routes.DORKS) { DorkScreen() }
+            composable(Routes.USERNAME_CHECK) { UsernameCheckScreen() }
             composable(Routes.VALIDATORS) { ValidatorsScreen() }
             composable(Routes.PHONE_PREFIX) { PhonePrefixScreen() }
             composable(Routes.ATM_FINDER) { AtmFinderScreen() }

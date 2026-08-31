@@ -13,7 +13,7 @@ import kotlin.random.Random
  */
 object DnsClient {
 
-    enum class RecordType(val code: Int) { A(1), NS(2), CNAME(5), MX(15), TXT(16), AAAA(28) }
+    enum class RecordType(val code: Int) { A(1), NS(2), CNAME(5), PTR(12), MX(15), TXT(16), AAAA(28) }
 
     data class DnsRecord(val type: String, val value: String, val ttl: Long)
 
@@ -33,6 +33,13 @@ object DnsClient {
         } catch (e: Exception) {
             DohClient.query(domain, type)
         }
+    }
+
+    /** DNS inverso: dada una IPv4, el hostname que tenga asignado (registro PTR), si existe. */
+    suspend fun reverseLookup(ip: String): String? {
+        val reversed = ip.trim().split(".").reversed().joinToString(".")
+        val records = runCatching { query("$reversed.in-addr.arpa", RecordType.PTR) }.getOrElse { emptyList() }
+        return records.firstOrNull()?.value?.trimEnd('.')
     }
 
     private suspend fun queryRaw(domain: String, type: RecordType, resolver: String): List<DnsRecord> =
@@ -134,6 +141,7 @@ object DnsClient {
                 }
                 2 -> readName() // NS
                 5 -> readName() // CNAME
+                12 -> readName() // PTR
                 16 -> { // TXT
                     val txtLen = u8()
                     val sb = StringBuilder()

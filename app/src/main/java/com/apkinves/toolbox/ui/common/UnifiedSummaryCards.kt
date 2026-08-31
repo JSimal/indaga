@@ -50,6 +50,7 @@ fun UnifiedSummaryCards(r: UnifiedReport) {
             InfoRow("Código postal", info.zip)
             if (info.lat != 0.0 || info.lon != 0.0) InfoRow("Coordenadas", "${info.lat}, ${info.lon}")
             InfoRow("Zona horaria", info.timezone)
+            InfoRow("DNS inverso (PTR)", r.reverseDns)
             val flags = buildList {
                 if (info.proxy) add("VPN/Proxy detectado")
                 if (info.hosting) add("IP de datacenter/hosting")
@@ -73,8 +74,17 @@ fun UnifiedSummaryCards(r: UnifiedReport) {
 
     InfoCard(title = "🔓 Puertos comunes") {
         val open = r.openPorts.filter { it.open }
-        if (open.isEmpty()) Text("Ninguno de los puertos comunes está abierto.", style = MaterialTheme.typography.bodySmall)
-        else Text(open.joinToString("\n") { "${it.port}/tcp — ${it.service}" }, style = MaterialTheme.typography.bodySmall)
+        if (open.isEmpty()) {
+            Text("Ninguno de los puertos comunes está abierto.", style = MaterialTheme.typography.bodySmall)
+        } else {
+            open.forEach { p ->
+                val banner = r.portBanners[p.port]
+                Text("${p.port}/tcp — ${p.service}", style = MaterialTheme.typography.bodySmall)
+                if (banner != null) {
+                    Text("  → $banner", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
     }
 
     InfoCard(title = "🛡️ Reputación y certificado") {

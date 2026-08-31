@@ -1,6 +1,7 @@
 package com.apkinves.toolbox.core.unified
 
 import com.apkinves.toolbox.core.net.AsnLookupClient
+import com.apkinves.toolbox.core.net.BannerGrabber
 import com.apkinves.toolbox.core.net.DnsClient
 import com.apkinves.toolbox.core.net.HostingPatternDetector
 import com.apkinves.toolbox.core.net.IpInfo
@@ -12,6 +13,7 @@ import com.apkinves.toolbox.core.net.RdapSummary
 import com.apkinves.toolbox.core.net.SslCertClient
 import com.apkinves.toolbox.core.net.WhoisClient
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
 enum class InputKind { IP, DOMAIN, UNKNOWN }
@@ -36,6 +38,8 @@ data class UnifiedReport(
     val hostingPattern: String?,
     val sslCerts: List<SslCertClient.CertInfo>?,
     val phishingMatch: Boolean?,
+    val reverseDns: String?,
+    val portBanners: Map<Int, String>,
 )
 
 /** Lógica compartida entre la Consulta Única y la Consulta por Lotes. */
@@ -72,6 +76,9 @@ object UnifiedQueryEngine {
         val asnJob = async {
             ipForChecks?.let { runCatching { AsnLookupClient.lookup(it) }.getOrNull() }
         }
+        val reverseDnsJob = async {
+            ipForChecks?.let { runCatching { DnsClient.reverseLookup(it) }.getOrNull() }
+        }
 
         val cnameTargets = dnsRecords[DnsClient.RecordType.CNAME]?.map { it.value } ?: emptyList()
         val hostingPattern = HostingPatternDetector.detect(cnameTargets)
@@ -83,18 +90,27 @@ object UnifiedQueryEngine {
             if (kind == InputKind.DOMAIN) runCatching { PhishingFeedClient.checkDomain(value) }.getOrNull()?.getOrNull() else null
         }
 
+        val openPorts = portsJob.await()
+        val host = ipForChecks ?: value
+        val bannerJobs = openPorts.filter { it.open }.map { port ->
+            async { port.port to BannerGrabber.grab(host, port.port) }
+        }
+        val portBanners = bannerJobs.awaitAll().mapNotNull { (port, banner) -> banner?.let { port to it } }.toMap()
+
         UnifiedReport(
             target = value,
             kind = kind,
             rdap = rdapJob.await(),
             ipInfo = ipInfoJob.await(),
             dnsRecords = dnsRecords,
-            openPorts = portsJob.await(),
+            openPorts = openPorts,
             rawWhois = rawWhoisJob.await(),
             asnInfo = asnJob.await(),
             hostingPattern = hostingPattern,
             sslCerts = sslJob.await(),
             phishingMatch = phishingJob.await(),
+            reverseDns = reverseDnsJob.await(),
+            portBanners = portBanners,
         )
     }
 
@@ -112,9 +128,13 @@ object UnifiedQueryEngine {
         r.hostingPattern?.let { appendLine("Plataforma detectada por CNAME: $it") }
         r.phishingMatch?.let { appendLine(if (it) "⚠ Aparece en el feed de phishing de OpenPhish" else "No aparece en el feed de phishing de OpenPhish") }
         r.sslCerts?.firstOrNull()?.let { appendLine("Certificado SSL: ${it.subject} (expira en ${it.daysUntilExpiry} días)") }
+        r.reverseDns?.let { appendLine("DNS inverso (PTR): $it") }
         appendLine("-- DNS --")
         r.dnsRecords.forEach { (type, records) -> appendLine("$type: ${records.joinToString { rec -> rec.value }}") }
         appendLine("-- Puertos abiertos --")
-        appendLine(r.openPorts.filter { it.open }.joinToString(", ") { "${it.port}(${it.service})" })
+        r.openPorts.filter { it.open }.forEach { p ->
+            val banner = r.portBanners[p.port]?.let { " → $it" } ?: ""
+            appendLine("${p.port}(${p.service})$banner")
+        }
     }
 }
