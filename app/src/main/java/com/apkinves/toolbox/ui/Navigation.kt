@@ -160,11 +160,6 @@ val TOOLS = listOf(
     ToolEntry(Routes.WATCHLIST, "Vigilancia", "Avisos si cambia una web o aparecen subdominios nuevos", CAT_GENERAL),
     ToolEntry(Routes.BATCH_QUERY, "Consulta por lotes", "Varios dominios/IPs a la vez, informe combinado", CAT_GENERAL),
 
-    ToolEntry(Routes.TRACEROUTE, "Conectividad y latencia", "¿Está el destino alcanzable? ¿Con qué latencia?", CAT_RED),
-    ToolEntry(Routes.CIDR, "Calculadora CIDR", "Rango, máscara, hosts usables", CAT_RED),
-    ToolEntry(Routes.BLACKLIST, "Listas negras", "¿Está la IP en alguna DNSBL?", CAT_RED),
-    ToolEntry(Routes.UPTIME, "¿Está caído?", "Disponibilidad y latencia de una web", CAT_RED),
-
     ToolEntry(Routes.SUBDOMAINS, "Subdominios", "Vía Certificate Transparency", CAT_WEB),
     ToolEntry(Routes.SSL_CERT, "Certificado SSL", "Caducidad y cadena de confianza", CAT_WEB),
     ToolEntry(Routes.TECH_DETECTOR, "Detector de tecnologías", "CMS, frameworks, analítica", CAT_WEB),
@@ -176,6 +171,11 @@ val TOOLS = listOf(
     ToolEntry(Routes.WAYBACK, "Wayback Machine", "Copia archivada más cercana", CAT_WEB),
     ToolEntry(Routes.META_TAGS, "Meta tags / Open Graph", "Cómo se comparte una URL", CAT_WEB),
     ToolEntry(Routes.RSS, "Lector RSS/Atom", "Feeds de un sitio", CAT_WEB),
+
+    ToolEntry(Routes.TRACEROUTE, "Conectividad y latencia", "¿Está el destino alcanzable? ¿Con qué latencia?", CAT_RED),
+    ToolEntry(Routes.CIDR, "Calculadora CIDR", "Rango, máscara, hosts usables", CAT_RED),
+    ToolEntry(Routes.BLACKLIST, "Listas negras", "¿Está la IP en alguna DNSBL?", CAT_RED),
+    ToolEntry(Routes.UPTIME, "¿Está caído?", "Disponibilidad y latencia de una web", CAT_RED),
 
     ToolEntry(Routes.VALIDATORS, "Validadores", "Tarjeta (Luhn+BIN), IBAN (+lista de países), NIF/NIE/CIF", CAT_FINANZAS),
     ToolEntry(Routes.PHONE_PREFIX, "Prefijo telefónico", "País por prefijo internacional", CAT_FINANZAS),
