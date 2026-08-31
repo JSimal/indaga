@@ -64,7 +64,6 @@ import com.apkinves.toolbox.features.reverseimg.ReverseImageScreen
 import com.apkinves.toolbox.features.rss.RssScreen
 import com.apkinves.toolbox.features.scamcheck.ScamCheckScreen
 import com.apkinves.toolbox.features.sitefiles.SiteFilesScreen
-import com.apkinves.toolbox.features.sslcert.SslCertScreen
 import com.apkinves.toolbox.features.stego.StegoScreen
 import com.apkinves.toolbox.features.subdomains.SubdomainsScreen
 import com.apkinves.toolbox.features.techdetector.TechDetectorScreen
@@ -89,7 +88,6 @@ object Routes {
     const val HISTORY = "history"
 
     const val SUBDOMAINS = "subdomains"
-    const val SSL_CERT = "ssl_cert"
     const val TECH_DETECTOR = "tech_detector"
     const val EMAIL_SEC = "email_sec"
     const val SITE_FILES = "site_files"
@@ -155,13 +153,12 @@ val CATEGORY_STYLES = mapOf(
 )
 
 val TOOLS = listOf(
-    ToolEntry(Routes.UNIFIED, "Consulta única", "WHOIS, DNS, hosting, VPN/proxy y puertos en una sola pantalla", CAT_GENERAL),
+    ToolEntry(Routes.UNIFIED, "Consulta única", "WHOIS, DNS, hosting, VPN/proxy, puertos, SSL y phishing en una sola pantalla", CAT_GENERAL),
     ToolEntry(Routes.HISTORY, "Historial / Caso", "Consultas guardadas", CAT_GENERAL),
     ToolEntry(Routes.WATCHLIST, "Vigilancia", "Avisos si cambia una web o aparecen subdominios nuevos", CAT_GENERAL),
     ToolEntry(Routes.BATCH_QUERY, "Consulta por lotes", "Varios dominios/IPs a la vez, informe combinado", CAT_GENERAL),
 
     ToolEntry(Routes.SUBDOMAINS, "Subdominios", "Vía Certificate Transparency", CAT_WEB),
-    ToolEntry(Routes.SSL_CERT, "Certificado SSL", "Caducidad y cadena de confianza", CAT_WEB),
     ToolEntry(Routes.TECH_DETECTOR, "Detector de tecnologías", "CMS, frameworks, analítica", CAT_WEB),
     ToolEntry(Routes.CVE, "Vulnerabilidades (CVE)", "Busca por tecnología/versión en la NVD del NIST", CAT_WEB),
     ToolEntry(Routes.EMAIL_SEC, "Seguridad de email", "SPF/DMARC de un dominio", CAT_WEB),
@@ -296,7 +293,6 @@ private fun ToolboxNavigation() {
             composable(Routes.HISTORY) { HistoryScreen() }
 
             composable(Routes.SUBDOMAINS) { SubdomainsScreen() }
-            composable(Routes.SSL_CERT) { SslCertScreen() }
             composable(Routes.TECH_DETECTOR) { TechDetectorScreen() }
             composable(Routes.CVE) { CveScreen() }
             composable(Routes.EMAIL_SEC) { EmailSecScreen() }

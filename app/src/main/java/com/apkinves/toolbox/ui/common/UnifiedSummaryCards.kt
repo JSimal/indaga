@@ -76,6 +76,35 @@ fun UnifiedSummaryCards(r: UnifiedReport) {
         if (open.isEmpty()) Text("Ninguno de los puertos comunes está abierto.", style = MaterialTheme.typography.bodySmall)
         else Text(open.joinToString("\n") { "${it.port}/tcp — ${it.service}" }, style = MaterialTheme.typography.bodySmall)
     }
+
+    InfoCard(title = "🛡️ Reputación y certificado") {
+        when (r.phishingMatch) {
+            true -> Text("⚠ Este dominio aparece en el feed de phishing activo de OpenPhish.", style = MaterialTheme.typography.bodySmall, color = CyberColors.NeonRed, fontWeight = FontWeight.Bold)
+            false -> Text("No aparece en el feed de phishing de OpenPhish (no garantiza que sea seguro).", style = MaterialTheme.typography.bodySmall, color = CyberColors.NeonGreen)
+            null -> {}
+        }
+
+        val certs = r.sslCerts
+        if (certs.isNullOrEmpty()) {
+            Text("Sin certificado SSL detectado en el puerto 443.", style = MaterialTheme.typography.bodySmall)
+        } else {
+            val cert = certs.first()
+            InfoRow("Sujeto", cert.subject)
+            InfoRow("Emisor", cert.issuer)
+            InfoRow("Válido", "${cert.validFrom} → ${cert.validTo}")
+            val expiryColor = when {
+                cert.daysUntilExpiry < 0 -> CyberColors.NeonRed
+                cert.daysUntilExpiry < 30 -> CyberColors.NeonAmber
+                else -> CyberColors.NeonGreen
+            }
+            Text(
+                if (cert.daysUntilExpiry < 0) "⚠ Certificado caducado" else "Caduca en ${cert.daysUntilExpiry} días",
+                style = MaterialTheme.typography.bodySmall,
+                color = expiryColor,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+    }
 }
 
 @Composable

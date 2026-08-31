@@ -5,9 +5,11 @@ import com.apkinves.toolbox.core.net.DnsClient
 import com.apkinves.toolbox.core.net.HostingPatternDetector
 import com.apkinves.toolbox.core.net.IpInfo
 import com.apkinves.toolbox.core.net.IpInfoClient
+import com.apkinves.toolbox.core.net.PhishingFeedClient
 import com.apkinves.toolbox.core.net.PortScanner
 import com.apkinves.toolbox.core.net.RdapClient
 import com.apkinves.toolbox.core.net.RdapSummary
+import com.apkinves.toolbox.core.net.SslCertClient
 import com.apkinves.toolbox.core.net.WhoisClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -32,6 +34,8 @@ data class UnifiedReport(
     val rawWhois: String,
     val asnInfo: AsnLookupClient.AsnInfo?,
     val hostingPattern: String?,
+    val sslCerts: List<SslCertClient.CertInfo>?,
+    val phishingMatch: Boolean?,
 )
 
 /** Lógica compartida entre la Consulta Única y la Consulta por Lotes. */
@@ -72,6 +76,13 @@ object UnifiedQueryEngine {
         val cnameTargets = dnsRecords[DnsClient.RecordType.CNAME]?.map { it.value } ?: emptyList()
         val hostingPattern = HostingPatternDetector.detect(cnameTargets)
 
+        val sslJob = async {
+            runCatching { SslCertClient.inspect(value) }.getOrNull()?.getOrNull()
+        }
+        val phishingJob = async {
+            if (kind == InputKind.DOMAIN) runCatching { PhishingFeedClient.checkDomain(value) }.getOrNull()?.getOrNull() else null
+        }
+
         UnifiedReport(
             target = value,
             kind = kind,
@@ -82,6 +93,8 @@ object UnifiedQueryEngine {
             rawWhois = rawWhoisJob.await(),
             asnInfo = asnJob.await(),
             hostingPattern = hostingPattern,
+            sslCerts = sslJob.await(),
+            phishingMatch = phishingJob.await(),
         )
     }
 
@@ -97,6 +110,8 @@ object UnifiedQueryEngine {
         r.ipInfo?.let { appendLine("${it.country} · ${it.isp} · proxy=${it.proxy} hosting=${it.hosting}") }
         r.asnInfo?.let { appendLine("ASN AS${it.asn} (${it.name ?: "?"}) · prefijo ${it.bgpPrefix ?: "?"}") }
         r.hostingPattern?.let { appendLine("Plataforma detectada por CNAME: $it") }
+        r.phishingMatch?.let { appendLine(if (it) "⚠ Aparece en el feed de phishing de OpenPhish" else "No aparece en el feed de phishing de OpenPhish") }
+        r.sslCerts?.firstOrNull()?.let { appendLine("Certificado SSL: ${it.subject} (expira en ${it.daysUntilExpiry} días)") }
         appendLine("-- DNS --")
         r.dnsRecords.forEach { (type, records) -> appendLine("$type: ${records.joinToString { rec -> rec.value }}") }
         appendLine("-- Puertos abiertos --")
