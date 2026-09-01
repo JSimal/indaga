@@ -184,7 +184,7 @@ val TOOLS = listOf(
 
     ToolEntry(Routes.VALIDATORS, "Validadores", "Tarjeta (Luhn+BIN), IBAN (+lista de países), NIF/NIE/CIF", CAT_FINANZAS),
     ToolEntry(Routes.PHONE_PREFIX, "Prefijo telefónico", "País por prefijo internacional", CAT_FINANZAS),
-    ToolEntry(Routes.ATM_FINDER, "Cajeros cercanos", "Ubicación y entidad (OpenStreetMap)", CAT_FINANZAS),
+    ToolEntry(Routes.ATM_FINDER, "Cajeros cercanos", "Mapa explorable + proximidad (OpenStreetMap)", CAT_FINANZAS),
     ToolEntry(Routes.SCAM_CHECK, "Verificar fraude/scam", "Abre ScamAdviser y otros con el dominio puesto", CAT_FINANZAS),
     ToolEntry(Routes.EMAIL_VERIFY, "Verificador de email", "Sintaxis + registros MX del dominio", CAT_FINANZAS),
     ToolEntry(Routes.CURRENCY, "Divisas y cripto", "EUR→USD/USDT/USDC (con fecha) + ticker BTC/ETH", CAT_FINANZAS),

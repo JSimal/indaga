@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<link rel="stylesheet" href="leaflet/leaflet.css" />
+<style>
+  html, body, #map { height: 100%; margin: 0; padding: 0; background: #090C10; }
+  .leaflet-control-attribution { font-size: 9px; }
+  .search-btn {
+    position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+    z-index: 1000; background: #22D3EE; color: #00272E; border: none;
+    padding: 10px 18px; border-radius: 20px; font-weight: bold; font-size: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<button class="search-btn" onclick="searchHere()">Buscar cajeros en esta zona</button>
+<script src="leaflet/leaflet.js"></script>
+<script>
+  var map = L.map('map', { zoomControl: true }).setView([40.4168, -3.7038], 15);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  var youIcon = L.divIcon({ className: '', html: '<div style="width:16px;height:16px;border-radius:50%;background:#22D3EE;border:2px solid white;"></div>', iconSize: [16,16] });
+  var youMarker = null;
+  var atmMarkers = [];
+
+  function setCenter(lat, lon) {
+    map.setView([lat, lon], 15);
+    if (youMarker) map.removeLayer(youMarker);
+    youMarker = L.marker([lat, lon], { icon: youIcon }).addTo(map).bindPopup('Tu ubicación');
+  }
+
+  function setAtms(atmsJson) {
+    atmMarkers.forEach(function(m) { map.removeLayer(m); });
+    atmMarkers = [];
+    var atms = JSON.parse(atmsJson);
+    atms.forEach(function(a) {
+      var m = L.marker([a.lat, a.lon]).addTo(map).bindPopup(a.name + '<br/>' + a.distanceKm.toFixed(2) + ' km');
+      atmMarkers.push(m);
+    });
+  }
+
+  function searchHere() {
+    var c = map.getCenter();
+    if (window.AndroidBridge) {
+      window.AndroidBridge.onSearchHere(c.lat, c.lng);
+    }
+  }
+</script>
+</body>
+</html>
