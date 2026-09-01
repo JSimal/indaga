@@ -167,7 +167,7 @@ private fun UpdateBanner(update: UpdateResult.UpdateAvailable) {
                                 }
                             }
                         }
-                    }) { Text("Descargar dentro de la app") }
+                    }) { Text("Actualizar") }
                 }
                 is UpdateUiState.Downloading -> {
                     LinearProgressIndicator(progress = { s.progress }, modifier = Modifier.fillMaxWidth())
