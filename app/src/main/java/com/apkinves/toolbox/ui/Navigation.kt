@@ -37,6 +37,7 @@ import com.apkinves.toolbox.features.batchquery.BatchQueryScreen
 import com.apkinves.toolbox.features.btscan.BtScanScreen
 import com.apkinves.toolbox.features.blacklist.BlacklistScreen
 import com.apkinves.toolbox.features.cidr.CidrScreen
+import com.apkinves.toolbox.features.currency.CurrencyScreen
 import com.apkinves.toolbox.features.cve.CveScreen
 import com.apkinves.toolbox.features.dorks.DorkScreen
 import com.apkinves.toolbox.features.emailsec.EmailSecScreen
@@ -130,6 +131,7 @@ object Routes {
     const val CVE = "cve"
     const val DORKS = "dorks"
     const val USERNAME_CHECK = "username_check"
+    const val CURRENCY = "currency"
 }
 
 data class ToolEntry(val route: String, val title: String, val description: String, val category: String)
@@ -185,6 +187,7 @@ val TOOLS = listOf(
     ToolEntry(Routes.ATM_FINDER, "Cajeros cercanos", "Ubicación y entidad (OpenStreetMap)", CAT_FINANZAS),
     ToolEntry(Routes.SCAM_CHECK, "Verificar fraude/scam", "Abre ScamAdviser y otros con el dominio puesto", CAT_FINANZAS),
     ToolEntry(Routes.EMAIL_VERIFY, "Verificador de email", "Sintaxis + registros MX del dominio", CAT_FINANZAS),
+    ToolEntry(Routes.CURRENCY, "Divisas y cripto", "EUR→USD/USDT/USDC (con fecha) + ticker BTC/ETH", CAT_FINANZAS),
 
     ToolEntry(Routes.HASH, "Hashes", "MD5, SHA-1, SHA-256, SHA-512", CAT_SEGURIDAD),
     ToolEntry(Routes.ENCODER, "Encoder/Decoder", "Base64, Hex, URL, JWT", CAT_SEGURIDAD),
@@ -317,6 +320,7 @@ private fun ToolboxNavigation() {
             composable(Routes.ATM_FINDER) { AtmFinderScreen() }
             composable(Routes.SCAM_CHECK) { ScamCheckScreen() }
             composable(Routes.EMAIL_VERIFY) { EmailVerifyScreen() }
+            composable(Routes.CURRENCY) { CurrencyScreen() }
 
             composable(Routes.FILE_TYPE) { FileTypeScreen() }
             composable(Routes.FILE_HASH) { FileHashScreen() }
