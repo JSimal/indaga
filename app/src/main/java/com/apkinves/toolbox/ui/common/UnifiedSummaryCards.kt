@@ -114,6 +114,66 @@ fun UnifiedSummaryCards(r: UnifiedReport) {
                 fontWeight = FontWeight.Bold,
             )
         }
+
+        val listedIn = r.blacklistResults.filter { it.listed }
+        if (listedIn.isNotEmpty()) {
+            Text("⚠ En listas negras: ${listedIn.joinToString(", ") { it.zone }}", style = MaterialTheme.typography.bodySmall, color = CyberColors.NeonRed, fontWeight = FontWeight.Bold)
+        } else if (r.blacklistResults.isNotEmpty()) {
+            Text("No aparece en ninguna lista negra comprobada.", style = MaterialTheme.typography.bodySmall, color = CyberColors.NeonGreen)
+        }
+
+        r.uptime?.let {
+            val color = if (it.up) CyberColors.NeonGreen else CyberColors.NeonRed
+            Text(
+                if (it.up) "✓ Disponible (${it.statusCode}, ${it.rttMs} ms)" else "✗ No responde correctamente (${it.statusCode})",
+                style = MaterialTheme.typography.bodySmall,
+                color = color,
+            )
+        }
+    }
+
+    if (r.subdomains.isNotEmpty() || r.techReport != null) {
+        InfoCard(title = "🧩 Subdominios y tecnologías") {
+            if (r.subdomains.isNotEmpty()) InfoRow("Subdominios (${r.subdomains.size})", r.subdomains.take(20).joinToString("\n"))
+            r.techReport?.let { tech ->
+                InfoRow("Servidor", tech.server)
+                if (tech.detected.isNotEmpty()) InfoRow("Tecnologías detectadas", tech.detected.joinToString(", "))
+            }
+        }
+    }
+
+    if (r.emailSecurity != null || r.robotsTxt != null || r.sitemapFound != null) {
+        InfoCard(title = "📧 Email y ficheros públicos") {
+            r.emailSecurity?.let { email ->
+                Text("Nota de seguridad de email: ${email.grade}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                InfoRow("SPF", email.spfRecord)
+                InfoRow("DMARC", email.dmarcRecord)
+            }
+            r.sitemapFound?.let { InfoRow("sitemap.xml", if (it) "Encontrado" else "No encontrado") }
+            r.robotsTxt?.let { InfoRow("robots.txt", it.take(300)) }
+        }
+    }
+
+    r.metaReport?.let { meta ->
+        if (meta.title != null || meta.tags.isNotEmpty()) {
+            InfoCard(title = "🏷️ Meta tags / Open Graph") {
+                InfoRow("Título", meta.title)
+                meta.tags.forEach { (k, v) -> InfoRow(k, v) }
+            }
+        }
+    }
+
+    if (r.redirectHops.size > 1) {
+        InfoCard(title = "↪️ Redirecciones") {
+            Text(r.redirectHops.joinToString("\n") { "[${it.statusCode}] ${it.url}" }, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+
+    r.waybackSnapshot?.let {
+        InfoCard(title = "🕰️ Wayback Machine") {
+            InfoRow("Copia archivada más cercana", it.timestamp)
+            InfoRow("Estado HTTP original", it.status)
+        }
     }
 }
 

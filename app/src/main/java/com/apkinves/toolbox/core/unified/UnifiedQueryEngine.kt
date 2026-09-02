@@ -2,15 +2,25 @@ package com.apkinves.toolbox.core.unified
 
 import com.apkinves.toolbox.core.net.AsnLookupClient
 import com.apkinves.toolbox.core.net.BannerGrabber
+import com.apkinves.toolbox.core.net.BlacklistChecker
 import com.apkinves.toolbox.core.net.DnsClient
+import com.apkinves.toolbox.core.net.EmailSecurityClient
 import com.apkinves.toolbox.core.net.HostingPatternDetector
 import com.apkinves.toolbox.core.net.IpInfo
 import com.apkinves.toolbox.core.net.IpInfoClient
+import com.apkinves.toolbox.core.net.MetaExtractor
 import com.apkinves.toolbox.core.net.PhishingFeedClient
 import com.apkinves.toolbox.core.net.PortScanner
 import com.apkinves.toolbox.core.net.RdapClient
 import com.apkinves.toolbox.core.net.RdapSummary
+import com.apkinves.toolbox.core.net.RedirectChecker
+import com.apkinves.toolbox.core.net.SiteFilesClient
 import com.apkinves.toolbox.core.net.SslCertClient
+import com.apkinves.toolbox.core.net.SubdomainFinder
+import com.apkinves.toolbox.core.net.TechDetector
+import com.apkinves.toolbox.core.net.UptimeChecker
+import com.apkinves.toolbox.core.net.WaybackClient
+import com.apkinves.toolbox.core.net.WaybackSnapshot
 import com.apkinves.toolbox.core.net.WhoisClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -40,12 +50,24 @@ data class UnifiedReport(
     val phishingMatch: Boolean?,
     val reverseDns: String?,
     val portBanners: Map<Int, String>,
+    val blacklistResults: List<BlacklistChecker.BlacklistResult>,
+    val uptime: UptimeChecker.UptimeResult?,
+    val emailSecurity: EmailSecurityClient.EmailSecurityReport?,
+    val robotsTxt: String?,
+    val sitemapFound: Boolean?,
+    val metaReport: MetaExtractor.MetaReport?,
+    val subdomains: List<String>,
+    val techReport: TechDetector.TechReport?,
+    val redirectHops: List<RedirectChecker.Hop>,
+    val waybackSnapshot: WaybackSnapshot?,
 )
 
 /** Lógica compartida entre la Consulta Única y la Consulta por Lotes. */
 object UnifiedQueryEngine {
 
     suspend fun run(value: String, kind: InputKind): UnifiedReport = coroutineScope {
+        val isDomain = kind == InputKind.DOMAIN
+
         val rdapJob = async {
             runCatching {
                 if (kind == InputKind.IP) RdapClient.lookupIpStructured(value) else RdapClient.lookupDomainStructured(value)
@@ -69,7 +91,7 @@ object UnifiedQueryEngine {
         }
 
         val dnsTypes = listOf(DnsClient.RecordType.A, DnsClient.RecordType.AAAA, DnsClient.RecordType.CNAME, DnsClient.RecordType.MX, DnsClient.RecordType.NS, DnsClient.RecordType.TXT)
-        val dnsRecords: Map<DnsClient.RecordType, List<DnsClient.DnsRecord>> = if (kind == InputKind.DOMAIN) {
+        val dnsRecords: Map<DnsClient.RecordType, List<DnsClient.DnsRecord>> = if (isDomain) {
             dnsTypes.associateWith { type -> runCatching { DnsClient.query(value, type) }.getOrElse { emptyList() } }
         } else emptyMap()
 
@@ -80,14 +102,45 @@ object UnifiedQueryEngine {
             ipForChecks?.let { runCatching { DnsClient.reverseLookup(it) }.getOrNull() }
         }
 
-        val cnameTargets = dnsRecords[DnsClient.RecordType.CNAME]?.map { it.value } ?: emptyList()
-        val hostingPattern = HostingPatternDetector.detect(cnameTargets)
-
         val sslJob = async {
             runCatching { SslCertClient.inspect(value) }.getOrNull()?.getOrNull()
         }
         val phishingJob = async {
-            if (kind == InputKind.DOMAIN) runCatching { PhishingFeedClient.checkDomain(value) }.getOrNull()?.getOrNull() else null
+            if (isDomain) runCatching { PhishingFeedClient.checkDomain(value) }.getOrNull()?.getOrNull() else null
+        }
+
+        // --- Fusión "barata" ---
+        val blacklistJob = async {
+            ipForChecks?.let { runCatching { BlacklistChecker.check(it) }.getOrElse { emptyList() } } ?: emptyList()
+        }
+        val uptimeJob = async {
+            if (isDomain) runCatching { UptimeChecker.check(value) }.getOrNull() else null
+        }
+        val emailSecJob = async {
+            if (isDomain) runCatching { EmailSecurityClient.analyze(value) }.getOrNull() else null
+        }
+        val robotsJob = async {
+            if (isDomain) runCatching { SiteFilesClient.fetch(value, "robots.txt") }.getOrNull() else null
+        }
+        val sitemapJob = async {
+            if (isDomain) runCatching { SiteFilesClient.fetch(value, "sitemap.xml") }.getOrNull()?.found else null
+        }
+        val metaJob = async {
+            if (isDomain) runCatching { MetaExtractor.extract(value) }.getOrNull()?.getOrNull() else null
+        }
+
+        // --- Fusión "razonable" ---
+        val subdomainsJob = async {
+            if (isDomain) runCatching { SubdomainFinder.find(value) }.getOrElse { emptyList() } else emptyList()
+        }
+        val techJob = async {
+            if (isDomain) runCatching { TechDetector.detect(value) }.getOrNull()?.getOrNull() else null
+        }
+        val redirectsJob = async {
+            if (isDomain) runCatching { RedirectChecker.trace(value) }.getOrElse { emptyList() } else emptyList()
+        }
+        val waybackJob = async {
+            if (isDomain) runCatching { WaybackClient.closestSnapshot(value) }.getOrNull()?.getOrNull() else null
         }
 
         val openPorts = portsJob.await()
@@ -96,6 +149,9 @@ object UnifiedQueryEngine {
             async { port.port to BannerGrabber.grab(host, port.port) }
         }
         val portBanners = bannerJobs.awaitAll().mapNotNull { (port, banner) -> banner?.let { port to it } }.toMap()
+
+        val cnameTargets = dnsRecords[DnsClient.RecordType.CNAME]?.map { it.value } ?: emptyList()
+        val hostingPattern = HostingPatternDetector.detect(cnameTargets)
 
         UnifiedReport(
             target = value,
@@ -111,6 +167,16 @@ object UnifiedQueryEngine {
             phishingMatch = phishingJob.await(),
             reverseDns = reverseDnsJob.await(),
             portBanners = portBanners,
+            blacklistResults = blacklistJob.await(),
+            uptime = uptimeJob.await(),
+            emailSecurity = emailSecJob.await(),
+            robotsTxt = robotsJob.await()?.let { if (it.found) it.content.take(1000) else null },
+            sitemapFound = sitemapJob.await(),
+            metaReport = metaJob.await(),
+            subdomains = subdomainsJob.await(),
+            techReport = techJob.await(),
+            redirectHops = redirectsJob.await(),
+            waybackSnapshot = waybackJob.await(),
         )
     }
 
@@ -129,12 +195,23 @@ object UnifiedQueryEngine {
         r.phishingMatch?.let { appendLine(if (it) "⚠ Aparece en el feed de phishing de OpenPhish" else "No aparece en el feed de phishing de OpenPhish") }
         r.sslCerts?.firstOrNull()?.let { appendLine("Certificado SSL: ${it.subject} (expira en ${it.daysUntilExpiry} días)") }
         r.reverseDns?.let { appendLine("DNS inverso (PTR): $it") }
+        if (r.blacklistResults.any { it.listed }) appendLine("⚠ En listas negras: ${r.blacklistResults.filter { it.listed }.joinToString { it.zone }}")
+        r.uptime?.let { appendLine("Disponibilidad: ${if (it.up) "arriba" else "caído"} (${it.statusCode}, ${it.rttMs}ms)") }
+        r.emailSecurity?.let { appendLine("Seguridad email: nota ${it.grade}") }
+        r.sitemapFound?.let { appendLine("sitemap.xml: ${if (it) "encontrado" else "no encontrado"}") }
+        r.techReport?.let { if (it.detected.isNotEmpty()) appendLine("Tecnologías: ${it.detected.joinToString(", ")}") }
+        if (r.subdomains.isNotEmpty()) appendLine("Subdominios (${r.subdomains.size}): ${r.subdomains.take(10).joinToString(", ")}")
+        r.waybackSnapshot?.let { appendLine("Wayback: copia archivada en ${it.timestamp}") }
         appendLine("-- DNS --")
         r.dnsRecords.forEach { (type, records) -> appendLine("$type: ${records.joinToString { rec -> rec.value }}") }
         appendLine("-- Puertos abiertos --")
         r.openPorts.filter { it.open }.forEach { p ->
             val banner = r.portBanners[p.port]?.let { " → $it" } ?: ""
             appendLine("${p.port}(${p.service})$banner")
+        }
+        if (r.redirectHops.size > 1) {
+            appendLine("-- Redirecciones --")
+            r.redirectHops.forEach { appendLine("[${it.statusCode}] ${it.url}") }
         }
     }
 }

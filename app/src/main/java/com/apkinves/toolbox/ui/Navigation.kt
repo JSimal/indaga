@@ -35,12 +35,10 @@ import com.apkinves.toolbox.features.apkanalyzer.ApkAnalyzerScreen
 import com.apkinves.toolbox.features.atmfinder.AtmFinderScreen
 import com.apkinves.toolbox.features.batchquery.BatchQueryScreen
 import com.apkinves.toolbox.features.btscan.BtScanScreen
-import com.apkinves.toolbox.features.blacklist.BlacklistScreen
 import com.apkinves.toolbox.features.cidr.CidrScreen
 import com.apkinves.toolbox.features.currency.CurrencyScreen
 import com.apkinves.toolbox.features.cve.CveScreen
 import com.apkinves.toolbox.features.dorks.DorkScreen
-import com.apkinves.toolbox.features.emailsec.EmailSecScreen
 import com.apkinves.toolbox.features.emailverify.EmailVerifyScreen
 import com.apkinves.toolbox.features.encoder.EncoderScreen
 import com.apkinves.toolbox.features.exif.ExifScreen
@@ -53,7 +51,6 @@ import com.apkinves.toolbox.features.httpcodes.HttpCodesScreen
 import com.apkinves.toolbox.features.history.HistoryScreen
 import com.apkinves.toolbox.features.iban.ValidatorsScreen
 import com.apkinves.toolbox.features.localnet.LocalNetScreen
-import com.apkinves.toolbox.features.metatags.MetaTagsScreen
 import com.apkinves.toolbox.features.nettools.NetToolsScreen
 import com.apkinves.toolbox.features.nfc.NfcScreen
 import com.apkinves.toolbox.features.password.PasswordScreen
@@ -61,21 +58,15 @@ import com.apkinves.toolbox.features.pdfmeta.PdfMetaScreen
 import com.apkinves.toolbox.features.phoneprefix.PhonePrefixScreen
 import com.apkinves.toolbox.features.privacycheck.PrivacyCheckScreen
 import com.apkinves.toolbox.features.qrscan.QrScanScreen
-import com.apkinves.toolbox.features.redirects.RedirectsScreen
 import com.apkinves.toolbox.features.reverseimg.ReverseImageScreen
 import com.apkinves.toolbox.features.rss.RssScreen
 import com.apkinves.toolbox.features.scamcheck.ScamCheckScreen
-import com.apkinves.toolbox.features.sitefiles.SiteFilesScreen
 import com.apkinves.toolbox.features.stego.StegoScreen
-import com.apkinves.toolbox.features.subdomains.SubdomainsScreen
-import com.apkinves.toolbox.features.techdetector.TechDetectorScreen
 import com.apkinves.toolbox.features.traceroute.TracerouteScreen
 import com.apkinves.toolbox.features.typosquat.TyposquatScreen
 import com.apkinves.toolbox.features.unified.UnifiedQueryScreen
-import com.apkinves.toolbox.features.uptime.UptimeScreen
 import com.apkinves.toolbox.features.username.UsernameCheckScreen
 import com.apkinves.toolbox.features.watchlist.WatchlistScreen
-import com.apkinves.toolbox.features.wayback.WaybackScreen
 import com.apkinves.toolbox.features.wifirange.WifiRangeScreen
 import com.apkinves.toolbox.features.wifiscan.WifiScanScreen
 
@@ -90,16 +81,7 @@ object Routes {
     const val PASSWORD = "password"
     const val HISTORY = "history"
 
-    const val SUBDOMAINS = "subdomains"
-    const val TECH_DETECTOR = "tech_detector"
-    const val EMAIL_SEC = "email_sec"
-    const val SITE_FILES = "site_files"
-    const val REDIRECTS = "redirects"
     const val TYPOSQUAT = "typosquat"
-    const val BLACKLIST = "blacklist"
-    const val UPTIME = "uptime"
-    const val WAYBACK = "wayback"
-    const val META_TAGS = "meta_tags"
     const val RSS = "rss"
     const val VALIDATORS = "validators"
     const val PHONE_PREFIX = "phone_prefix"
@@ -159,28 +141,19 @@ val CATEGORY_STYLES = mapOf(
 )
 
 val TOOLS = listOf(
-    ToolEntry(Routes.UNIFIED, "Consulta única", "WHOIS, DNS, hosting, VPN/proxy, puertos, SSL y phishing en una sola pantalla", CAT_GENERAL),
+    ToolEntry(Routes.UNIFIED, "Consulta única", "WHOIS, DNS, hosting, puertos, SSL, subdominios, tecnologías, email, listas negras y más", CAT_GENERAL),
     ToolEntry(Routes.HISTORY, "Historial / Caso", "Consultas guardadas", CAT_GENERAL),
     ToolEntry(Routes.WATCHLIST, "Vigilancia", "Avisos si cambia una web o aparecen subdominios nuevos", CAT_GENERAL),
     ToolEntry(Routes.BATCH_QUERY, "Consulta por lotes", "Varios dominios/IPs a la vez, informe combinado", CAT_GENERAL),
 
-    ToolEntry(Routes.SUBDOMAINS, "Subdominios", "Vía Certificate Transparency", CAT_WEB),
-    ToolEntry(Routes.TECH_DETECTOR, "Detector de tecnologías", "CMS, frameworks, analítica", CAT_WEB),
     ToolEntry(Routes.CVE, "Vulnerabilidades (CVE)", "Busca por tecnología/versión en la NVD del NIST", CAT_WEB),
-    ToolEntry(Routes.EMAIL_SEC, "Seguridad de email", "SPF/DMARC de un dominio", CAT_WEB),
-    ToolEntry(Routes.SITE_FILES, "robots.txt / sitemap", "Ficheros públicos de un sitio", CAT_WEB),
-    ToolEntry(Routes.REDIRECTS, "Redirecciones", "Traza la cadena completa", CAT_WEB),
     ToolEntry(Routes.TYPOSQUAT, "Typosquatting", "Dominios parecidos ya registrados", CAT_WEB),
-    ToolEntry(Routes.WAYBACK, "Wayback Machine", "Copia archivada más cercana", CAT_WEB),
-    ToolEntry(Routes.META_TAGS, "Meta tags / Open Graph", "Cómo se comparte una URL", CAT_WEB),
     ToolEntry(Routes.RSS, "Lector RSS/Atom", "Feeds de un sitio", CAT_WEB),
     ToolEntry(Routes.DORKS, "Google/Bing Dorks", "Reconocimiento pasivo sobre un dominio", CAT_WEB),
     ToolEntry(Routes.USERNAME_CHECK, "Buscador de username", "¿Existe ese usuario en otras plataformas?", CAT_WEB),
 
     ToolEntry(Routes.TRACEROUTE, "Conectividad y latencia", "¿Está el destino alcanzable? ¿Con qué latencia?", CAT_RED),
     ToolEntry(Routes.CIDR, "Calculadora CIDR", "Rango, máscara, hosts usables", CAT_RED),
-    ToolEntry(Routes.BLACKLIST, "Listas negras", "¿Está la IP en alguna DNSBL?", CAT_RED),
-    ToolEntry(Routes.UPTIME, "¿Está caído?", "Disponibilidad y latencia de una web", CAT_RED),
 
     ToolEntry(Routes.VALIDATORS, "Validadores", "Tarjeta (Luhn+BIN), IBAN (+lista de países), NIF/NIE/CIF", CAT_FINANZAS),
     ToolEntry(Routes.PHONE_PREFIX, "Prefijo telefónico", "País por prefijo internacional", CAT_FINANZAS),
@@ -301,17 +274,8 @@ private fun ToolboxNavigation() {
             composable(Routes.PASSWORD) { PasswordScreen() }
             composable(Routes.HISTORY) { HistoryScreen() }
 
-            composable(Routes.SUBDOMAINS) { SubdomainsScreen() }
-            composable(Routes.TECH_DETECTOR) { TechDetectorScreen() }
             composable(Routes.CVE) { CveScreen() }
-            composable(Routes.EMAIL_SEC) { EmailSecScreen() }
-            composable(Routes.SITE_FILES) { SiteFilesScreen() }
-            composable(Routes.REDIRECTS) { RedirectsScreen() }
             composable(Routes.TYPOSQUAT) { TyposquatScreen() }
-            composable(Routes.BLACKLIST) { BlacklistScreen() }
-            composable(Routes.UPTIME) { UptimeScreen() }
-            composable(Routes.WAYBACK) { WaybackScreen() }
-            composable(Routes.META_TAGS) { MetaTagsScreen() }
             composable(Routes.RSS) { RssScreen() }
             composable(Routes.DORKS) { DorkScreen() }
             composable(Routes.USERNAME_CHECK) { UsernameCheckScreen() }
