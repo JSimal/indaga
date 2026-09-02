@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +59,7 @@ fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
     val favorites by favoritesRepo.favorites.collectAsState()
     var updateAvailable by remember { mutableStateOf<UpdateResult.UpdateAvailable?>(null) }
     var query by remember { mutableStateOf("") }
+    val expandedCategories = remember { mutableStateOf(setOf<String>()) }
 
     LaunchedEffect(Unit) {
         val result = UpdateChecker.checkForUpdate(BuildConfig.VERSION_NAME)
@@ -68,6 +71,11 @@ fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
     }
     val favoriteTools = tools.filter { it.route in favorites }
     val grouped = filtered.groupBy { it.category }
+
+    fun toggleCategory(category: String) {
+        val current = expandedCategories.value
+        expandedCategories.value = if (category in current) current - category else current + category
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -91,28 +99,49 @@ fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
 
         if (query.isBlank() && favoriteTools.isNotEmpty()) {
             item {
-                CategoryHeader(emoji = "⭐", title = "Favoritos", color = com.apkinves.toolbox.ui.theme.CyberColors.NeonAmber)
+                CategoryHeader(
+                    emoji = "⭐",
+                    title = "Favoritos",
+                    color = com.apkinves.toolbox.ui.theme.CyberColors.NeonAmber,
+                    expanded = true,
+                    onClick = {},
+                )
             }
-            items(favoriteTools) { tool ->
-                ToolCard(tool, com.apkinves.toolbox.ui.theme.CyberColors.NeonAmber, isFavorite = true, onToolClick = onToolClick) {
-                    favoritesRepo.toggle(tool.route)
-                }
-            }
-        }
-
-        grouped.forEach { (category, toolsInCategory) ->
-            val style = CATEGORY_STYLES[category]
-            item { CategoryHeader(emoji = style?.emoji ?: "", title = category, color = style?.color ?: MaterialTheme.colorScheme.primary) }
-            items(toolsInCategory) { tool ->
-                val accent = style?.color ?: MaterialTheme.colorScheme.primary
-                ToolCard(tool, accent, isFavorite = tool.route in favorites, onToolClick = onToolClick) {
-                    favoritesRepo.toggle(tool.route)
-                }
+            items(favoriteTools.chunked(2)) { pair ->
+                ToolCardRow(pair, com.apkinves.toolbox.ui.theme.CyberColors.NeonAmber, favorites, onToolClick) { favoritesRepo.toggle(it) }
             }
         }
 
-        if (query.isNotBlank() && filtered.isEmpty()) {
-            item { Text("Sin resultados para \"$query\"", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 16.dp)) }
+        if (query.isBlank()) {
+            // Modo normal: categorías plegables, todo colapsado salvo lo que el usuario abra.
+            grouped.forEach { (category, toolsInCategory) ->
+                val style = CATEGORY_STYLES[category]
+                val isExpanded = category in expandedCategories.value
+                item {
+                    CategoryHeader(
+                        emoji = style?.emoji ?: "",
+                        title = "$category (${toolsInCategory.size})",
+                        color = style?.color ?: MaterialTheme.colorScheme.primary,
+                        expanded = isExpanded,
+                        onClick = { toggleCategory(category) },
+                    )
+                }
+                if (isExpanded) {
+                    items(toolsInCategory.chunked(2)) { pair ->
+                        val accent = style?.color ?: MaterialTheme.colorScheme.primary
+                        ToolCardRow(pair, accent, favorites, onToolClick) { favoritesRepo.toggle(it) }
+                    }
+                }
+            }
+        } else {
+            // Modo búsqueda: resultados planos, sin agrupar ni plegar (feedback inmediato).
+            items(filtered.chunked(2)) { pair ->
+                val style = CATEGORY_STYLES[pair.first().category]
+                ToolCardRow(pair, style?.color ?: MaterialTheme.colorScheme.primary, favorites, onToolClick) { favoritesRepo.toggle(it) }
+            }
+            if (filtered.isEmpty()) {
+                item { Text("Sin resultados para \"$query\"", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 16.dp)) }
+            }
         }
 
         item {
@@ -197,18 +226,56 @@ private fun UpdateBanner(update: UpdateResult.UpdateAvailable) {
 }
 
 @Composable
-private fun CategoryHeader(emoji: String, title: String, color: androidx.compose.ui.graphics.Color) {
+private fun CategoryHeader(
+    emoji: String,
+    title: String,
+    color: androidx.compose.ui.graphics.Color,
+    expanded: Boolean,
+    onClick: () -> Unit,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(top = 16.dp, bottom = 6.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(top = 16.dp, bottom = 6.dp),
     ) {
         Box(modifier = Modifier.width(4.dp).fillMaxHeight().background(color, RoundedCornerShape(2.dp)))
         Text(
             "$emoji  $title",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(start = 10.dp),
+            modifier = Modifier.padding(start = 10.dp).weight(1f),
         )
+        Icon(
+            painterResource(R.drawable.ic_back),
+            contentDescription = if (expanded) "Contraer" else "Expandir",
+            tint = color,
+            modifier = Modifier.rotate(if (expanded) 90f else 270f),
+        )
+    }
+}
+
+@Composable
+private fun ToolCardRow(
+    pair: List<ToolEntry>,
+    accent: androidx.compose.ui.graphics.Color,
+    favorites: Set<String>,
+    onToolClick: (String) -> Unit,
+    onToggleFavorite: (String) -> Unit,
+) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        pair.forEach { tool ->
+            ToolCard(
+                tool = tool,
+                accent = accent,
+                isFavorite = tool.route in favorites,
+                onToolClick = onToolClick,
+                onToggleFavorite = { onToggleFavorite(tool.route) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        if (pair.size == 1) Box(modifier = Modifier.weight(1f))
     }
 }
 
@@ -219,28 +286,35 @@ private fun ToolCard(
     isFavorite: Boolean,
     onToolClick: (String) -> Unit,
     onToggleFavorite: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .padding(bottom = 8.dp)
             .clip(MaterialTheme.shapes.medium)
             .border(1.dp, accent.copy(alpha = 0.25f), MaterialTheme.shapes.medium)
             .clickable { onToolClick(tool.route) },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.width(4.dp).fillMaxHeight().background(accent))
-            Column(modifier = Modifier.padding(16.dp).weight(1f)) {
-                Text(tool.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-                Text(tool.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            IconButton(onClick = onToggleFavorite) {
-                Icon(
-                    painterResource(if (isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline),
-                    contentDescription = if (isFavorite) "Quitar de favoritos" else "Añadir a favoritos",
-                    tint = if (isFavorite) com.apkinves.toolbox.ui.theme.CyberColors.NeonAmber else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+        Column {
+            Box(modifier = Modifier.fillMaxWidth().height(3.dp).background(accent))
+            Column(modifier = Modifier.padding(10.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+                    Text(
+                        tool.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(onClick = onToggleFavorite, modifier = Modifier.width(28.dp).height(28.dp)) {
+                        Icon(
+                            painterResource(if (isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline),
+                            contentDescription = if (isFavorite) "Quitar de favoritos" else "Añadir a favoritos",
+                            tint = if (isFavorite) com.apkinves.toolbox.ui.theme.CyberColors.NeonAmber else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Text(tool.description, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

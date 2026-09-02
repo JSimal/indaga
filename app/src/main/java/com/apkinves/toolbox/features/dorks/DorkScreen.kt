@@ -20,9 +20,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.apkinves.toolbox.core.util.DorkGenerator
+import com.apkinves.toolbox.ui.theme.CyberColors
+
+private fun riskColor(risk: DorkGenerator.Risk): Color = when (risk) {
+    DorkGenerator.Risk.ALTO -> CyberColors.NeonRed
+    DorkGenerator.Risk.MEDIO -> CyberColors.NeonAmber
+    DorkGenerator.Risk.BAJO -> CyberColors.NeonGreen
+}
 
 @Composable
 fun DorkScreen() {
@@ -39,9 +48,12 @@ fun DorkScreen() {
     ) {
         Text("Google/Bing Dorks", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
         Text(
-            "Reconocimiento pasivo: genera búsquedas avanzadas sobre un " +
-                "dominio (documentos expuestos, paneles de admin, backups...) " +
-                "y las abre directamente en el buscador.",
+            "Reconocimiento pasivo sobre un dominio, ordenado de mayor a " +
+                "menor interés para una investigación: primero lo que suele " +
+                "revelar fugas de datos reales (repos .git, backups, " +
+                "credenciales, Pastebin, buckets S3...), luego superficie de " +
+                "ataque (paneles, APIs, documentos), y por último " +
+                "reconocimiento general.",
             style = MaterialTheme.typography.bodySmall,
         )
         OutlinedTextField(
@@ -56,7 +68,15 @@ fun DorkScreen() {
             DorkGenerator.forDomain(domain).forEach { dork ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(dork.label, style = MaterialTheme.typography.titleSmall)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                dork.risk.name,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = riskColor(dork.risk),
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(dork.label, style = MaterialTheme.typography.titleSmall)
+                        }
                         Text(dork.query, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(onClick = { open(DorkGenerator.googleUrl(dork.query)) }) { Text("Google") }
