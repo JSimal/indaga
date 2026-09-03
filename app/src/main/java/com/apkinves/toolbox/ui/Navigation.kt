@@ -57,6 +57,7 @@ import com.apkinves.toolbox.features.password.PasswordScreen
 import com.apkinves.toolbox.features.pdfmeta.PdfMetaScreen
 import com.apkinves.toolbox.features.phoneprefix.PhonePrefixScreen
 import com.apkinves.toolbox.features.privacycheck.PrivacyCheckScreen
+import com.apkinves.toolbox.features.qcodes.QCodesScreen
 import com.apkinves.toolbox.features.qrscan.QrScanScreen
 import com.apkinves.toolbox.features.reverseimg.ReverseImageScreen
 import com.apkinves.toolbox.features.rss.RssScreen
@@ -114,6 +115,7 @@ object Routes {
     const val DORKS = "dorks"
     const val USERNAME_CHECK = "username_check"
     const val CURRENCY = "currency"
+    const val QCODES = "qcodes"
 }
 
 data class ToolEntry(val route: String, val title: String, val description: String, val category: String)
@@ -121,11 +123,12 @@ data class ToolEntry(val route: String, val title: String, val description: Stri
 private const val CAT_GENERAL = "General"
 private const val CAT_RED = "Red"
 private const val CAT_WEB = "Web y dominios"
-private const val CAT_FINANZAS = "Finanzas / identidad"
+private const val CAT_IDENTIDAD = "Identidad / OSINT personal"
+private const val CAT_FINANZAS = "Finanzas"
 private const val CAT_SEGURIDAD = "Seguridad"
 private const val CAT_ARCHIVOS = "Archivos"
 private const val CAT_HARDWARE = "Hardware local (permisos especiales)"
-private const val CAT_EXTRAS = "Extras"
+private const val CAT_UTILIDADES = "Utilidades técnicas"
 
 data class CategoryStyle(val emoji: String, val color: androidx.compose.ui.graphics.Color)
 
@@ -133,11 +136,12 @@ val CATEGORY_STYLES = mapOf(
     CAT_GENERAL to CategoryStyle("🧭", com.apkinves.toolbox.ui.theme.CyberColors.NeonCyan),
     CAT_RED to CategoryStyle("🌐", com.apkinves.toolbox.ui.theme.CyberColors.NeonGreen),
     CAT_WEB to CategoryStyle("🔗", com.apkinves.toolbox.ui.theme.CyberColors.NeonTeal),
+    CAT_IDENTIDAD to CategoryStyle("🕵️", com.apkinves.toolbox.ui.theme.CyberColors.NeonRed),
     CAT_FINANZAS to CategoryStyle("💳", com.apkinves.toolbox.ui.theme.CyberColors.NeonAmber),
     CAT_SEGURIDAD to CategoryStyle("🔐", com.apkinves.toolbox.ui.theme.CyberColors.NeonPink),
     CAT_ARCHIVOS to CategoryStyle("📁", com.apkinves.toolbox.ui.theme.CyberColors.NeonPurple),
     CAT_HARDWARE to CategoryStyle("📡", com.apkinves.toolbox.ui.theme.CyberColors.NeonOrange),
-    CAT_EXTRAS to CategoryStyle("✨", com.apkinves.toolbox.ui.theme.CyberColors.NeonCyan),
+    CAT_UTILIDADES to CategoryStyle("✨", com.apkinves.toolbox.ui.theme.CyberColors.NeonCyan),
 )
 
 val TOOLS = listOf(
@@ -146,26 +150,31 @@ val TOOLS = listOf(
     ToolEntry(Routes.WATCHLIST, "Vigilancia", "Avisos si cambia una web o aparecen subdominios nuevos", CAT_GENERAL),
     ToolEntry(Routes.BATCH_QUERY, "Consulta por lotes", "Varios dominios/IPs a la vez, informe combinado", CAT_GENERAL),
 
-    ToolEntry(Routes.CVE, "Vulnerabilidades (CVE)", "Busca por tecnología/versión en la NVD del NIST", CAT_WEB),
     ToolEntry(Routes.TYPOSQUAT, "Typosquatting", "Dominios parecidos ya registrados", CAT_WEB),
     ToolEntry(Routes.RSS, "Lector RSS/Atom", "Feeds de un sitio", CAT_WEB),
     ToolEntry(Routes.DORKS, "Google/Bing Dorks", "Reconocimiento pasivo sobre un dominio", CAT_WEB),
-    ToolEntry(Routes.USERNAME_CHECK, "Buscador de username", "¿Existe ese usuario en otras plataformas?", CAT_WEB),
+    ToolEntry(Routes.SCAM_CHECK, "Verificar fraude/scam", "Abre ScamAdviser y otros con el dominio puesto", CAT_WEB),
+    ToolEntry(Routes.EMAIL_VERIFY, "Verificador de email", "Sintaxis + registros MX del dominio", CAT_WEB),
 
     ToolEntry(Routes.TRACEROUTE, "Conectividad y latencia", "¿Está el destino alcanzable? ¿Con qué latencia?", CAT_RED),
     ToolEntry(Routes.CIDR, "Calculadora CIDR", "Rango, máscara, hosts usables", CAT_RED),
+    ToolEntry(Routes.NET_TOOLS, "Ping / Conexión TCP", "Ping y conexión TCP en crudo", CAT_RED),
+    ToolEntry(Routes.PRIVACY_CHECK, "Qué expone tu conexión", "IP pública, ISP, DNS en uso", CAT_RED),
+
+    ToolEntry(Routes.PHONE_PREFIX, "Prefijo telefónico", "País por prefijo internacional", CAT_IDENTIDAD),
+    ToolEntry(Routes.USERNAME_CHECK, "Buscador de username", "¿Existe ese usuario en otras plataformas?", CAT_IDENTIDAD),
+    ToolEntry(Routes.REVERSE_IMG, "Búsqueda inversa de imágenes", "Abre Lens/Yandex/TinEye", CAT_IDENTIDAD),
 
     ToolEntry(Routes.VALIDATORS, "Validadores", "Tarjeta (Luhn+BIN), IBAN (+lista de países), NIF/NIE/CIF", CAT_FINANZAS),
-    ToolEntry(Routes.PHONE_PREFIX, "Prefijo telefónico", "País por prefijo internacional", CAT_FINANZAS),
     ToolEntry(Routes.ATM_FINDER, "Cajeros cercanos", "Mapa explorable + proximidad (OpenStreetMap)", CAT_FINANZAS),
-    ToolEntry(Routes.SCAM_CHECK, "Verificar fraude/scam", "Abre ScamAdviser y otros con el dominio puesto", CAT_FINANZAS),
-    ToolEntry(Routes.EMAIL_VERIFY, "Verificador de email", "Sintaxis + registros MX del dominio", CAT_FINANZAS),
     ToolEntry(Routes.CURRENCY, "Divisas y cripto", "EUR→USD/USDT/USDC (con fecha) + ticker BTC/ETH", CAT_FINANZAS),
 
     ToolEntry(Routes.HASH, "Hashes", "MD5, SHA-1, SHA-256, SHA-512", CAT_SEGURIDAD),
     ToolEntry(Routes.ENCODER, "Encoder/Decoder", "Base64, Hex, URL, JWT", CAT_SEGURIDAD),
     ToolEntry(Routes.PASSWORD, "Contraseñas", "Generador + medidor de fortaleza + filtraciones (HIBP)", CAT_SEGURIDAD),
     ToolEntry(Routes.QR_SCAN, "Escáner QR", "Lee códigos QR/barras y analiza el contenido", CAT_SEGURIDAD),
+    ToolEntry(Routes.STEGO, "Esteganografía (básico)", "Heurística sobre el bit menos significativo", CAT_SEGURIDAD),
+    ToolEntry(Routes.CVE, "Vulnerabilidades (CVE)", "Busca por tecnología/versión en la NVD del NIST", CAT_SEGURIDAD),
 
     ToolEntry(Routes.FILE_TYPE, "Tipo de archivo real", "Detecta por cabecera binaria", CAT_ARCHIVOS),
     ToolEntry(Routes.FILE_HASH, "Comparar archivos", "¿Son dos archivos idénticos?", CAT_ARCHIVOS),
@@ -178,14 +187,11 @@ val TOOLS = listOf(
     ToolEntry(Routes.NFC, "Lector NFC", "Lee tags/tarjetas NFC", CAT_HARDWARE),
     ToolEntry(Routes.APK_ANALYZER, "Analizador de APK", "Permisos y firma de un .apk elegido", CAT_HARDWARE),
 
-    ToolEntry(Routes.GEO_UTILS, "Utilidades geográficas", "Decimal↔DMS, país por TLD", CAT_EXTRAS),
-    ToolEntry(Routes.HTTP_CODES, "Códigos HTTP", "Diccionario buscable", CAT_EXTRAS),
-    ToolEntry(Routes.FREQ_BANDS, "Bandas de frecuencia", "Qué servicio usa cada banda", CAT_EXTRAS),
-    ToolEntry(Routes.WIFI_RANGE, "Alcance WiFi", "Estimación teórica en espacio libre", CAT_EXTRAS),
-    ToolEntry(Routes.REVERSE_IMG, "Búsqueda inversa de imágenes", "Abre Lens/Yandex/TinEye", CAT_EXTRAS),
-    ToolEntry(Routes.STEGO, "Esteganografía (básico)", "Heurística sobre el bit menos significativo", CAT_EXTRAS),
-    ToolEntry(Routes.NET_TOOLS, "Ping / Conexión TCP", "Ping y conexión TCP en crudo", CAT_EXTRAS),
-    ToolEntry(Routes.PRIVACY_CHECK, "Qué expone tu conexión", "IP pública, ISP, DNS en uso", CAT_EXTRAS),
+    ToolEntry(Routes.GEO_UTILS, "Utilidades geográficas", "Decimal↔DMS, país por TLD", CAT_UTILIDADES),
+    ToolEntry(Routes.HTTP_CODES, "Códigos HTTP", "Diccionario buscable", CAT_UTILIDADES),
+    ToolEntry(Routes.FREQ_BANDS, "Bandas de frecuencia", "Qué servicio usa cada banda", CAT_UTILIDADES),
+    ToolEntry(Routes.WIFI_RANGE, "Alcance WiFi", "Estimación teórica en espacio libre", CAT_UTILIDADES),
+    ToolEntry(Routes.QCODES, "Código Q (radioaficionado)", "Los códigos Q más usados en radiotelegrafía", CAT_UTILIDADES),
 )
 
 @Composable
@@ -307,6 +313,7 @@ private fun ToolboxNavigation() {
             composable(Routes.PRIVACY_CHECK) { PrivacyCheckScreen() }
             composable(Routes.WATCHLIST) { WatchlistScreen() }
             composable(Routes.QR_SCAN) { QrScanScreen() }
+            composable(Routes.QCODES) { QCodesScreen() }
         }
     }
 }
