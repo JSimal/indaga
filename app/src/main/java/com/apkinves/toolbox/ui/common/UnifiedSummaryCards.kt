@@ -36,7 +36,11 @@ fun UnifiedSummaryCards(r: UnifiedReport) {
     InfoCard(title = "🖥️ Hosting y red") {
         val info = r.ipInfo
         if (info == null) {
-            Text("Sin datos de IP disponibles.", style = MaterialTheme.typography.bodySmall)
+            Text(
+                r.ipInfoError ?: "Sin datos de IP disponibles.",
+                style = MaterialTheme.typography.bodySmall,
+                color = CyberColors.NeonAmber,
+            )
         } else {
             if (r.hostingPattern != null) {
                 Text("Plataforma detectada: ${r.hostingPattern}", style = MaterialTheme.typography.bodySmall, color = CyberColors.NeonGreen, fontWeight = FontWeight.Bold)

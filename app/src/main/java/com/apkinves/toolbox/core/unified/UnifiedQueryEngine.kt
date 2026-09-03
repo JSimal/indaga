@@ -60,6 +60,7 @@ data class UnifiedReport(
     val techReport: TechDetector.TechReport?,
     val redirectHops: List<RedirectChecker.Hop>,
     val waybackSnapshot: WaybackSnapshot?,
+    val ipInfoError: String?,
 )
 
 /** Lógica compartida entre la Consulta Única y la Consulta por Lotes. */
@@ -83,8 +84,11 @@ object UnifiedQueryEngine {
             runCatching { DnsClient.query(value, DnsClient.RecordType.A) }.getOrNull()?.firstOrNull()?.value
         }
 
-        val ipInfoJob = async {
-            ipForChecks?.let { runCatching { IpInfoClient.lookup(it) }.getOrNull() }
+        // Se distingue el motivo del fallo (útil porque tiene causas muy
+        // distintas: DNS que no resuelve, timeout de red, límite gratuito de
+        // la API superado, o IP privada/reservada sin datos de hosting).
+        val ipInfoResultJob = async {
+            if (ipForChecks == null) null else runCatching { IpInfoClient.lookup(ipForChecks) }
         }
         val portsJob = async {
             runCatching { PortScanner.scan(ipForChecks ?: value) }.getOrElse { emptyList() }
@@ -153,11 +157,21 @@ object UnifiedQueryEngine {
         val cnameTargets = dnsRecords[DnsClient.RecordType.CNAME]?.map { it.value } ?: emptyList()
         val hostingPattern = HostingPatternDetector.detect(cnameTargets)
 
+        val ipInfoResult = ipInfoResultJob.await()
+        val ipInfoRaw = ipInfoResult?.getOrNull()
+        val ipInfo = ipInfoRaw?.takeIf { it.status != "fail" }
+        val ipInfoError = when {
+            ipForChecks == null -> "No se pudo resolver la IP del dominio (sin registro A, o el DNS no respondió)."
+            ipInfoResult != null && ipInfoResult.isFailure -> "Fallo al consultar la API de hosting: ${ipInfoResult.exceptionOrNull()?.message ?: "error de red o timeout"}."
+            ipInfoRaw != null && ipInfoRaw.status == "fail" -> "La IP no tiene datos de hosting disponibles${ipInfoRaw.message.takeIf { it.isNotBlank() }?.let { " ($it)" } ?: ""} — probablemente es una IP privada o reservada."
+            else -> null
+        }
+
         UnifiedReport(
             target = value,
             kind = kind,
             rdap = rdapJob.await(),
-            ipInfo = ipInfoJob.await(),
+            ipInfo = ipInfo,
             dnsRecords = dnsRecords,
             openPorts = openPorts,
             rawWhois = rawWhoisJob.await(),
@@ -177,6 +191,7 @@ object UnifiedQueryEngine {
             techReport = techJob.await(),
             redirectHops = redirectsJob.await(),
             waybackSnapshot = waybackJob.await(),
+            ipInfoError = ipInfoError,
         )
     }
 
@@ -190,6 +205,7 @@ object UnifiedQueryEngine {
         appendLine(r.rawWhois.take(600))
         appendLine("-- IP Info --")
         r.ipInfo?.let { appendLine("${it.country} · ${it.isp} · proxy=${it.proxy} hosting=${it.hosting}") }
+            ?: r.ipInfoError?.let { appendLine(it) }
         r.asnInfo?.let { appendLine("ASN AS${it.asn} (${it.name ?: "?"}) · prefijo ${it.bgpPrefix ?: "?"}") }
         r.hostingPattern?.let { appendLine("Plataforma detectada por CNAME: $it") }
         r.phishingMatch?.let { appendLine(if (it) "⚠ Aparece en el feed de phishing de OpenPhish" else "No aparece en el feed de phishing de OpenPhish") }

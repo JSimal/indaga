@@ -40,8 +40,8 @@ object IpInfoClient {
             "timezone,isp,org,as,proxy,hosting,mobile"
         val url = URL("http://ip-api.com/json/$ip?fields=$fields")
         val conn = url.openConnection() as HttpURLConnection
-        conn.connectTimeout = 5000
-        conn.readTimeout = 5000
+        conn.connectTimeout = 7000
+        conn.readTimeout = 7000
         try {
             val body = conn.inputStream.bufferedReader().readText()
             json.decodeFromString(IpInfo.serializer(), body)
