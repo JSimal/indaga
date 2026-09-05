@@ -74,6 +74,10 @@ private val CyberShapes = Shapes(
 
 @Composable
 fun ToolboxTheme(content: @Composable () -> Unit) {
-    val colors = if (isSystemInDarkTheme()) DarkColors else LightColors
+    val colors = when (ThemePreference.mode) {
+        ThemeMode.DARK -> DarkColors
+        ThemeMode.LIGHT -> LightColors
+        ThemeMode.SYSTEM -> if (isSystemInDarkTheme()) DarkColors else LightColors
+    }
     MaterialTheme(colorScheme = colors, shapes = CyberShapes, content = content)
 }

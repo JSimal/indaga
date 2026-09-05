@@ -18,6 +18,7 @@ import com.apkinves.toolbox.core.net.SiteFilesClient
 import com.apkinves.toolbox.core.net.SslCertClient
 import com.apkinves.toolbox.core.net.SubdomainFinder
 import com.apkinves.toolbox.core.net.TechDetector
+import com.apkinves.toolbox.core.net.TyposquattingDetector
 import com.apkinves.toolbox.core.net.UptimeChecker
 import com.apkinves.toolbox.core.net.WaybackClient
 import com.apkinves.toolbox.core.net.WaybackSnapshot
@@ -61,6 +62,7 @@ data class UnifiedReport(
     val redirectHops: List<RedirectChecker.Hop>,
     val waybackSnapshot: WaybackSnapshot?,
     val ipInfoError: String?,
+    val typosquatRegistered: List<TyposquattingDetector.Candidate>,
 )
 
 /** Lógica compartida entre la Consulta Única y la Consulta por Lotes. */
@@ -146,6 +148,14 @@ object UnifiedQueryEngine {
         val waybackJob = async {
             if (isDomain) runCatching { WaybackClient.closestSnapshot(value) }.getOrNull()?.getOrNull() else null
         }
+        val typosquatJob = async {
+            if (isDomain) {
+                runCatching {
+                    val variants = TyposquattingDetector.generateVariants(value)
+                    TyposquattingDetector.checkRegistered(variants).filter { it.registered }
+                }.getOrElse { emptyList() }
+            } else emptyList()
+        }
 
         val openPorts = portsJob.await()
         val host = ipForChecks ?: value
@@ -192,6 +202,7 @@ object UnifiedQueryEngine {
             redirectHops = redirectsJob.await(),
             waybackSnapshot = waybackJob.await(),
             ipInfoError = ipInfoError,
+            typosquatRegistered = typosquatJob.await(),
         )
     }
 
@@ -218,6 +229,7 @@ object UnifiedQueryEngine {
         r.techReport?.let { if (it.detected.isNotEmpty()) appendLine("Tecnologías: ${it.detected.joinToString(", ")}") }
         if (r.subdomains.isNotEmpty()) appendLine("Subdominios (${r.subdomains.size}): ${r.subdomains.take(10).joinToString(", ")}")
         r.waybackSnapshot?.let { appendLine("Wayback: copia archivada en ${it.timestamp}") }
+        if (r.typosquatRegistered.isNotEmpty()) appendLine("⚠ Dominios parecidos ya registrados: ${r.typosquatRegistered.joinToString(", ") { it.domain }}")
         appendLine("-- DNS --")
         r.dnsRecords.forEach { (type, records) -> appendLine("$type: ${records.joinToString { rec -> rec.value }}") }
         appendLine("-- Puertos abiertos --")

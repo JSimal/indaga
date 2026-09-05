@@ -13,6 +13,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.apkinves.toolbox.core.net.NfcTagHolder
 import com.apkinves.toolbox.ui.ToolboxApp
+import com.apkinves.toolbox.ui.theme.ThemePreference
 import com.apkinves.toolbox.ui.theme.ToolboxTheme
 
 class MainActivity : ComponentActivity() {
@@ -22,6 +23,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+        ThemePreference.init(this)
         enableEdgeToEdge()
         setContent {
             ToolboxTheme {

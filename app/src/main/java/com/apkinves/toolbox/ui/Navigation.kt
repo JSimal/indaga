@@ -38,7 +38,6 @@ import com.apkinves.toolbox.features.btscan.BtScanScreen
 import com.apkinves.toolbox.features.cidr.CidrScreen
 import com.apkinves.toolbox.features.currency.CurrencyScreen
 import com.apkinves.toolbox.features.cve.CveScreen
-import com.apkinves.toolbox.features.dorks.DorkScreen
 import com.apkinves.toolbox.features.emailverify.EmailVerifyScreen
 import com.apkinves.toolbox.features.encoder.EncoderScreen
 import com.apkinves.toolbox.features.exif.ExifScreen
@@ -61,10 +60,8 @@ import com.apkinves.toolbox.features.qcodes.QCodesScreen
 import com.apkinves.toolbox.features.qrscan.QrScanScreen
 import com.apkinves.toolbox.features.reverseimg.ReverseImageScreen
 import com.apkinves.toolbox.features.rss.RssScreen
-import com.apkinves.toolbox.features.scamcheck.ScamCheckScreen
 import com.apkinves.toolbox.features.stego.StegoScreen
 import com.apkinves.toolbox.features.traceroute.TracerouteScreen
-import com.apkinves.toolbox.features.typosquat.TyposquatScreen
 import com.apkinves.toolbox.features.unified.UnifiedQueryScreen
 import com.apkinves.toolbox.features.username.UsernameCheckScreen
 import com.apkinves.toolbox.features.watchlist.WatchlistScreen
@@ -82,11 +79,9 @@ object Routes {
     const val PASSWORD = "password"
     const val HISTORY = "history"
 
-    const val TYPOSQUAT = "typosquat"
     const val RSS = "rss"
     const val VALIDATORS = "validators"
     const val PHONE_PREFIX = "phone_prefix"
-    const val SCAM_CHECK = "scam_check"
     const val ATM_FINDER = "atm_finder"
     const val EMAIL_VERIFY = "email_verify"
 
@@ -112,7 +107,6 @@ object Routes {
     const val WATCHLIST = "watchlist"
     const val QR_SCAN = "qr_scan"
     const val CVE = "cve"
-    const val DORKS = "dorks"
     const val USERNAME_CHECK = "username_check"
     const val CURRENCY = "currency"
     const val QCODES = "qcodes"
@@ -145,16 +139,13 @@ val CATEGORY_STYLES = mapOf(
 )
 
 val TOOLS = listOf(
-    ToolEntry(Routes.UNIFIED, "Consulta única", "WHOIS, DNS, hosting, puertos, SSL, subdominios, tecnologías, email, listas negras y más", CAT_GENERAL),
+    ToolEntry(Routes.UNIFIED, "Info Dominios Web", "WHOIS, DNS, hosting, puertos, SSL, subdominios, tecnologías, email, listas negras, dominios parecidos, fraude/scam, dorks y más", CAT_GENERAL),
     ToolEntry(Routes.HISTORY, "Historial / Caso", "Consultas guardadas", CAT_GENERAL),
     ToolEntry(Routes.WATCHLIST, "Vigilancia", "Avisos si cambia una web o aparecen subdominios nuevos", CAT_GENERAL),
     ToolEntry(Routes.BATCH_QUERY, "Consulta por lotes", "Varios dominios/IPs a la vez, informe combinado", CAT_GENERAL),
 
-    ToolEntry(Routes.TYPOSQUAT, "Typosquatting", "Dominios parecidos ya registrados", CAT_WEB),
     ToolEntry(Routes.RSS, "Lector RSS/Atom", "Feeds de un sitio", CAT_WEB),
-    ToolEntry(Routes.DORKS, "Google/Bing Dorks", "Reconocimiento pasivo sobre un dominio", CAT_WEB),
-    ToolEntry(Routes.SCAM_CHECK, "Verificar fraude/scam", "Abre ScamAdviser y otros con el dominio puesto", CAT_WEB),
-    ToolEntry(Routes.EMAIL_VERIFY, "Verificador de email", "Sintaxis + registros MX del dominio", CAT_WEB),
+    ToolEntry(Routes.EMAIL_VERIFY, "Verificador de email", "Sintaxis, MX, permutador de direcciones y analizador de cabeceras", CAT_WEB),
 
     ToolEntry(Routes.TRACEROUTE, "Conectividad y latencia", "¿Está el destino alcanzable? ¿Con qué latencia?", CAT_RED),
     ToolEntry(Routes.CIDR, "Calculadora CIDR", "Rango, máscara, hosts usables", CAT_RED),
@@ -187,7 +178,7 @@ val TOOLS = listOf(
     ToolEntry(Routes.NFC, "Lector NFC", "Lee tags/tarjetas NFC", CAT_HARDWARE),
     ToolEntry(Routes.APK_ANALYZER, "Analizador de APK", "Permisos y firma de un .apk elegido", CAT_HARDWARE),
 
-    ToolEntry(Routes.GEO_UTILS, "Utilidades geográficas", "Decimal↔DMS, país por TLD", CAT_UTILIDADES),
+    ToolEntry(Routes.GEO_UTILS, "Utilidades geográficas", "Decimal↔DMS, país por TLD, orto/ocaso y fase lunar, Plus Codes", CAT_UTILIDADES),
     ToolEntry(Routes.HTTP_CODES, "Códigos HTTP", "Diccionario buscable", CAT_UTILIDADES),
     ToolEntry(Routes.FREQ_BANDS, "Bandas de frecuencia", "Qué servicio usa cada banda", CAT_UTILIDADES),
     ToolEntry(Routes.WIFI_RANGE, "Alcance WiFi", "Estimación teórica en espacio libre", CAT_UTILIDADES),
@@ -241,6 +232,7 @@ private fun ToolboxNavigation() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route ?: Routes.HOME
     val currentTitle = TOOLS.firstOrNull { it.route == currentRoute }?.title ?: "Indaga"
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     Scaffold(
         topBar = {
@@ -258,6 +250,11 @@ private fun ToolboxNavigation() {
                         }
                     }
                 },
+                actions = {
+                    IconButton(onClick = { com.apkinves.toolbox.ui.theme.ThemePreference.cycle(context) }) {
+                        Text(com.apkinves.toolbox.ui.theme.ThemePreference.icon(), style = MaterialTheme.typography.titleMedium)
+                    }
+                },
                 colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     titleContentColor = MaterialTheme.colorScheme.primary,
@@ -271,7 +268,7 @@ private fun ToolboxNavigation() {
             modifier = Modifier.padding(padding),
         ) {
             composable(Routes.HOME) { HomeScreen(navController) }
-            composable(Routes.UNIFIED) { UnifiedQueryScreen() }
+            composable(Routes.UNIFIED) { UnifiedQueryScreen(navController) }
             composable(Routes.BATCH_QUERY) { BatchQueryScreen() }
             composable(Routes.TRACEROUTE) { TracerouteScreen() }
             composable(Routes.CIDR) { CidrScreen() }
@@ -281,14 +278,11 @@ private fun ToolboxNavigation() {
             composable(Routes.HISTORY) { HistoryScreen() }
 
             composable(Routes.CVE) { CveScreen() }
-            composable(Routes.TYPOSQUAT) { TyposquatScreen() }
             composable(Routes.RSS) { RssScreen() }
-            composable(Routes.DORKS) { DorkScreen() }
             composable(Routes.USERNAME_CHECK) { UsernameCheckScreen() }
             composable(Routes.VALIDATORS) { ValidatorsScreen() }
             composable(Routes.PHONE_PREFIX) { PhonePrefixScreen() }
             composable(Routes.ATM_FINDER) { AtmFinderScreen() }
-            composable(Routes.SCAM_CHECK) { ScamCheckScreen() }
             composable(Routes.EMAIL_VERIFY) { EmailVerifyScreen() }
             composable(Routes.CURRENCY) { CurrencyScreen() }
 

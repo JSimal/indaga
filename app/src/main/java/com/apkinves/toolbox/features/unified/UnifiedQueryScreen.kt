@@ -20,17 +20,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.apkinves.toolbox.core.unified.InputKind
 import com.apkinves.toolbox.core.unified.UnifiedQueryEngine
 import com.apkinves.toolbox.core.unified.UnifiedReport
 import com.apkinves.toolbox.core.unified.detectKind
 import com.apkinves.toolbox.data.CaseRepository
+import com.apkinves.toolbox.ui.Routes
 import com.apkinves.toolbox.ui.common.ResultBlock
 import com.apkinves.toolbox.ui.common.UnifiedSummaryCards
 import kotlinx.coroutines.launch
 
 @Composable
-fun UnifiedQueryScreen() {
+fun UnifiedQueryScreen(navController: NavHostController? = null) {
     var target by remember { mutableStateOf("") }
     var report by remember { mutableStateOf<UnifiedReport?>(null) }
     var loading by remember { mutableStateOf(false) }
@@ -44,10 +46,11 @@ fun UnifiedQueryScreen() {
         modifier = Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Consulta única", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
+        Text("Info Dominios Web", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
         Text(
             "Introduce una IP o un dominio: registrador, fechas, DNS, hosting, " +
-                "VPN/proxy y puertos comunes, todo en una sola consulta.",
+                "VPN/proxy, puertos comunes, dominios parecidos, enlaces de " +
+                "fraude/scam y de búsqueda avanzada... todo en una sola consulta.",
             style = MaterialTheme.typography.bodySmall,
         )
         OutlinedTextField(
@@ -73,7 +76,7 @@ fun UnifiedQueryScreen() {
                     val result = UnifiedQueryEngine.run(value, kind)
                     report = result
                     loading = false
-                    repo.add("Consulta única", value, "Informe combinado", UnifiedQueryEngine.buildRawSummary(result))
+                    repo.add("Info Dominios Web", value, "Informe combinado", UnifiedQueryEngine.buildRawSummary(result))
                 }
             },
             enabled = target.isNotBlank() && !loading,
@@ -85,7 +88,13 @@ fun UnifiedQueryScreen() {
         if (loading) CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         if (errorText.isNotBlank()) Text(errorText, color = MaterialTheme.colorScheme.error)
 
-        report?.let { r -> UnifiedSummaryCards(r) }
+        report?.let { r ->
+            UnifiedSummaryCards(
+                r,
+                onOpenRss = navController?.let { nav -> { nav.navigate(Routes.RSS) } },
+                onOpenCve = navController?.let { nav -> { nav.navigate(Routes.CVE) } },
+            )
+        }
 
         if (report != null) {
             Button(onClick = { showRaw = !showRaw }, modifier = Modifier.fillMaxWidth()) {

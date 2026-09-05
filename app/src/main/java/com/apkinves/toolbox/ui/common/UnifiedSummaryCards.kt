@@ -1,22 +1,34 @@
 package com.apkinves.toolbox.ui.common
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.apkinves.toolbox.core.unified.UnifiedReport
+import com.apkinves.toolbox.core.util.DorkGenerator
+import com.apkinves.toolbox.core.util.NavPrefill
+import com.apkinves.toolbox.core.util.ScamCheckLinks
 import com.apkinves.toolbox.ui.theme.CyberColors
 
 @Composable
-fun UnifiedSummaryCards(r: UnifiedReport) {
+fun UnifiedSummaryCards(r: UnifiedReport, onOpenRss: (() -> Unit)? = null, onOpenCve: (() -> Unit)? = null) {
+    val context = LocalContext.current
+    fun openUrl(url: String) {
+        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+    }
     InfoCard(title = "📋 Registro del dominio/IP") {
         val rdap = r.rdap
         if (rdap == null) {
@@ -177,6 +189,62 @@ fun UnifiedSummaryCards(r: UnifiedReport) {
         InfoCard(title = "🕰️ Wayback Machine") {
             InfoRow("Copia archivada más cercana", it.timestamp)
             InfoRow("Estado HTTP original", it.status)
+        }
+    }
+
+    if (r.kind == com.apkinves.toolbox.core.unified.InputKind.DOMAIN) {
+        InfoCard(title = "🎭 Dominios parecidos (typosquatting)") {
+            if (r.typosquatRegistered.isEmpty()) {
+                Text("Ninguna variante evidente del nombre está registrada (buena señal).", style = MaterialTheme.typography.bodySmall, color = CyberColors.NeonGreen)
+            } else {
+                Text("⚠ Ya están registradas:", style = MaterialTheme.typography.bodySmall, color = CyberColors.NeonAmber, fontWeight = FontWeight.Bold)
+                r.typosquatRegistered.forEach { Text("  ${it.domain}", style = MaterialTheme.typography.bodySmall) }
+            }
+        }
+
+        InfoCard(title = "🕵️ Verificar fraude/scam") {
+            Text(
+                "Ninguno tiene API gratuita: se abren en el navegador con el dominio ya puesto.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            ScamCheckLinks.SITES.forEach { site ->
+                Button(onClick = { openUrl(ScamCheckLinks.urlFor(site, r.target)) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(if (site.directLookup) "Comprobar en ${site.label}" else "Buscar en ${site.label} (no garantizado)")
+                }
+            }
+        }
+
+        InfoCard(title = "🔍 Búsquedas avanzadas (Dorks)") {
+            Text("Reconocimiento pasivo, ordenado de mayor a menor interés investigativo.", style = MaterialTheme.typography.bodySmall)
+            DorkGenerator.forDomain(r.target).take(6).forEach { dork ->
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                    Text("${dork.risk.name} — ${dork.label}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = { openUrl(DorkGenerator.googleUrl(dork.query)) }) { Text("Google") }
+                        Button(onClick = { openUrl(DorkGenerator.bingUrl(dork.query)) }) { Text("Bing") }
+                    }
+                }
+            }
+        }
+
+        if (onOpenRss != null || onOpenCve != null) {
+            InfoCard(title = "➡️ Seguir investigando") {
+                if (onOpenRss != null) {
+                    Button(onClick = { NavPrefill.rssUrl = r.target; onOpenRss() }, modifier = Modifier.fillMaxWidth()) {
+                        Text("Ver feeds RSS/Atom de este sitio")
+                    }
+                }
+                if (onOpenCve != null) {
+                    val firstTech = r.techReport?.detected?.firstOrNull()
+                    Button(
+                        onClick = { NavPrefill.cveKeyword = firstTech ?: r.target; onOpenCve() },
+                        enabled = firstTech != null,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(if (firstTech != null) "Buscar CVEs de \"$firstTech\"" else "Buscar CVEs (sin tecnología detectada)")
+                    }
+                }
+            }
         }
     }
 }

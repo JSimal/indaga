@@ -1,6 +1,7 @@
 package com.apkinves.toolbox.features.rss
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -8,6 +9,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.apkinves.toolbox.core.net.RssClient
+import com.apkinves.toolbox.core.util.NavPrefill
 import com.apkinves.toolbox.data.CaseRepository
 import com.apkinves.toolbox.ui.common.ResultBlock
 import com.apkinves.toolbox.ui.common.ToolScreenScaffold
@@ -16,6 +18,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun RssScreen() {
     var target by remember { mutableStateOf("") }
+    LaunchedEffect(Unit) {
+        NavPrefill.rssUrl?.let { target = it; NavPrefill.rssUrl = null }
+    }
     var result by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()

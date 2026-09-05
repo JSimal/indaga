@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.apkinves.toolbox.core.net.CveClient
+import com.apkinves.toolbox.core.util.NavPrefill
 import com.apkinves.toolbox.ui.theme.CyberColors
 import kotlinx.coroutines.launch
 
@@ -42,6 +44,9 @@ private fun severityColor(severity: String?): Color = when (severity?.uppercase(
 @Composable
 fun CveScreen() {
     var keyword by remember { mutableStateOf("") }
+    LaunchedEffect(Unit) {
+        NavPrefill.cveKeyword?.let { keyword = it; NavPrefill.cveKeyword = null }
+    }
     var results by remember { mutableStateOf<List<CveClient.CveResult>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }

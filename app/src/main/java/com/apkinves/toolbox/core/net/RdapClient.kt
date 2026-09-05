@@ -1,6 +1,9 @@
 package com.apkinves.toolbox.core.net
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -43,9 +46,11 @@ object RdapClient {
     }
 
     // rdap.org redirige de forma fiable para dominios, pero para IPs falla con
-    // más frecuencia (según el registro regional que gestione ese rango). Si
-    // falla, se prueba directamente contra cada RIR: solo uno de ellos tendrá
-    // esa IP (los demás devuelven 404, que simplemente se descarta y se sigue).
+    // más frecuencia (según el registro regional que gestione ese rango).
+    // Solo uno de estos RIR tendrá esa IP (los demás devuelven 404), así que
+    // se consultan todos EN PARALELO y nos quedamos con el primero que
+    // responda con éxito — probarlos en cadena secuencial (como antes) podía
+    // tardar hasta 6×8s = 48s en el peor caso antes de fallar.
     private val IP_RDAP_SERVERS = listOf(
         "https://rdap.org/ip",
         "https://rdap.arin.net/registry/ip",
@@ -55,14 +60,13 @@ object RdapClient {
         "https://rdap.afrinic.net/rdap/ip",
     )
 
-    suspend fun lookupIpStructured(ip: String): Result<RdapSummary> = withContext(Dispatchers.IO) {
-        var lastFailure: Result<RdapSummary>? = null
-        for (base in IP_RDAP_SERVERS) {
-            val result = fetch("$base/${ip.trim()}")
-            if (result.isSuccess) return@withContext result
-            lastFailure = result
-        }
-        lastFailure ?: Result.failure(IllegalStateException("Sin servidores RDAP disponibles"))
+    suspend fun lookupIpStructured(ip: String): Result<RdapSummary> = coroutineScope {
+        val results = IP_RDAP_SERVERS.map { base ->
+            async(Dispatchers.IO) { fetch("$base/${ip.trim()}") }
+        }.awaitAll()
+        results.firstOrNull { it.isSuccess }
+            ?: results.firstOrNull()
+            ?: Result.failure(IllegalStateException("Sin servidores RDAP disponibles"))
     }
 
     private fun fetch(url: String): Result<RdapSummary> = runCatching {
