@@ -28,8 +28,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.apkinves.toolbox.core.net.CryptoTickerClient
 import com.apkinves.toolbox.core.net.CurrencyClient
+import com.apkinves.toolbox.core.net.MarketQuoteClient
 import com.apkinves.toolbox.ui.common.Sparkline
 import com.apkinves.toolbox.ui.theme.CyberColors
 import kotlinx.coroutines.launch
@@ -49,9 +49,9 @@ fun CurrencyScreen() {
     var error by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
-    var tickers by remember { mutableStateOf<List<CryptoTickerClient.CoinTicker>>(emptyList()) }
+    var quotes by remember { mutableStateOf<List<MarketQuoteClient.Quote>>(emptyList()) }
     LaunchedEffect(Unit) {
-        CryptoTickerClient.fetch().onSuccess { tickers = it }
+        quotes = MarketQuoteClient.fetchAll()
     }
 
     Column(
@@ -60,21 +60,34 @@ fun CurrencyScreen() {
     ) {
         Text("Divisas y cripto", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
 
-        // --- Ticker BTC/ETH ---
-        if (tickers.isNotEmpty()) {
+        // --- Cotizaciones ---
+        if (quotes.isNotEmpty()) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Cotización en tiempo real (últimos 7 días)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    tickers.forEach { t ->
+                    Text("Cotizaciones (últimos días)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Vía Yahoo Finance (API no oficial, sin registro): puede fallar o cambiar sin aviso.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    quotes.forEach { q ->
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column {
-                                Text("${t.symbol}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                                Text("€%,.2f".format(t.priceEur), style = MaterialTheme.typography.bodySmall)
+                                Text(q.label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Text("%,.2f %s".format(q.price, q.currency), style = MaterialTheme.typography.bodySmall)
+                                    q.changePercent?.let {
+                                        Text(
+                                            "%+.2f%%".format(it),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = if (it >= 0) CyberColors.NeonGreen else CyberColors.NeonRed,
+                                        )
+                                    }
+                                }
                             }
-                            Sparkline(
-                                values = t.last7Days,
-                                color = if (t.symbol == "BTC") CyberColors.NeonAmber else CyberColors.NeonTeal,
-                            )
+                            if (q.last5Days.size > 1) {
+                                Sparkline(values = q.last5Days, color = CyberColors.NeonTeal)
+                            }
                         }
                     }
                 }

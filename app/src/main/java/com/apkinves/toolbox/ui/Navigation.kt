@@ -161,7 +161,7 @@ val TOOLS = listOf(
 
     ToolEntry(Routes.VALIDATORS, "Validadores", "Tarjeta (Luhn+BIN), IBAN (+lista de países), NIF/NIE/CIF", CAT_FINANZAS),
     ToolEntry(Routes.ATM_FINDER, "Cajeros cercanos", "Mapa explorable + proximidad (OpenStreetMap)", CAT_FINANZAS),
-    ToolEntry(Routes.CURRENCY, "Divisas y cripto", "EUR→USD/USDT/USDC (con fecha) + ticker BTC/ETH", CAT_FINANZAS),
+    ToolEntry(Routes.CURRENCY, "Divisas y cripto", "EUR→USD/USDT/USDC (con fecha) + cotizaciones BTC, ETH, oro, Nasdaq 100 y ETFs", CAT_FINANZAS),
 
     ToolEntry(Routes.HASH, "Hashes", "MD5, SHA-1, SHA-256, SHA-512", CAT_SEGURIDAD),
     ToolEntry(Routes.ENCODER, "Encoder/Decoder", "Base64, Hex, URL, JWT", CAT_SEGURIDAD),
