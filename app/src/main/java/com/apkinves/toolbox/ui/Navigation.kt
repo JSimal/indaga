@@ -50,6 +50,7 @@ import com.apkinves.toolbox.features.httpcodes.HttpCodesScreen
 import com.apkinves.toolbox.features.history.HistoryScreen
 import com.apkinves.toolbox.features.iban.ValidatorsScreen
 import com.apkinves.toolbox.features.localnet.LocalNetScreen
+import com.apkinves.toolbox.features.namegen.NameGeneratorScreen
 import com.apkinves.toolbox.features.nettools.NetToolsScreen
 import com.apkinves.toolbox.features.nfc.NfcScreen
 import com.apkinves.toolbox.features.password.PasswordScreen
@@ -110,6 +111,7 @@ object Routes {
     const val USERNAME_CHECK = "username_check"
     const val CURRENCY = "currency"
     const val QCODES = "qcodes"
+    const val NAME_GENERATOR = "name_generator"
 }
 
 data class ToolEntry(val route: String, val title: String, val description: String, val category: String)
@@ -143,6 +145,7 @@ val TOOLS = listOf(
     ToolEntry(Routes.HISTORY, "Historial / Caso", "Consultas guardadas", CAT_GENERAL),
     ToolEntry(Routes.WATCHLIST, "Vigilancia", "Avisos si cambia una web o aparecen subdominios nuevos", CAT_GENERAL),
     ToolEntry(Routes.BATCH_QUERY, "Consulta por lotes", "Varios dominios/IPs a la vez, informe combinado", CAT_GENERAL),
+    ToolEntry(Routes.NAME_GENERATOR, "Generador de nombres", "Nombres aleatorios de dos palabras, por temática", CAT_GENERAL),
 
     ToolEntry(Routes.RSS, "Lector RSS/Atom", "Feeds de un sitio", CAT_WEB),
     ToolEntry(Routes.EMAIL_VERIFY, "Verificador de email", "Sintaxis, MX, permutador de direcciones y analizador de cabeceras", CAT_WEB),
@@ -188,9 +191,19 @@ val TOOLS = listOf(
 @Composable
 fun ToolboxApp() {
     var status by remember { mutableStateOf<AppStatus?>(null) }
+    var showSplash by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         status = AppStatusClient.fetch()
+    }
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(4000)
+        showSplash = false
+    }
+
+    if (showSplash) {
+        SplashScreen()
+        return
     }
 
     val current = status
@@ -308,6 +321,7 @@ private fun ToolboxNavigation() {
             composable(Routes.WATCHLIST) { WatchlistScreen() }
             composable(Routes.QR_SCAN) { QrScanScreen() }
             composable(Routes.QCODES) { QCodesScreen() }
+            composable(Routes.NAME_GENERATOR) { NameGeneratorScreen() }
         }
     }
 }
