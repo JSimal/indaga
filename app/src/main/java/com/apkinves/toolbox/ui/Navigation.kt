@@ -145,7 +145,7 @@ val TOOLS = listOf(
     ToolEntry(Routes.HISTORY, "Historial / Caso", "Consultas guardadas", CAT_GENERAL),
     ToolEntry(Routes.WATCHLIST, "Vigilancia", "Avisos si cambia una web o aparecen subdominios nuevos", CAT_GENERAL),
     ToolEntry(Routes.BATCH_QUERY, "Consulta por lotes", "Varios dominios/IPs a la vez, informe combinado", CAT_GENERAL),
-    ToolEntry(Routes.NAME_GENERATOR, "Generador de nombres", "Nombres aleatorios de dos palabras, por temática", CAT_GENERAL),
+    ToolEntry(Routes.NAME_GENERATOR, "Generador de nombres", "Palabra por temática traducida a idiomas poco habituales, + traductor libre", CAT_GENERAL),
 
     ToolEntry(Routes.RSS, "Lector RSS/Atom", "Feeds de un sitio", CAT_WEB),
     ToolEntry(Routes.EMAIL_VERIFY, "Verificador de email", "Sintaxis, MX, permutador de direcciones y analizador de cabeceras", CAT_WEB),
