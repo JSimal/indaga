@@ -1,5 +1,6 @@
 package com.apkinves.toolbox.core.net
 
+import com.apkinves.toolbox.core.util.LatinTextFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -28,7 +29,8 @@ object TranslatorClient {
                 val translated = Json.parseToJsonElement(body).jsonObject["responseData"]?.jsonObject
                     ?.get("translatedText")?.jsonPrimitive?.content
                     ?: error("Sin traducción disponible")
-                translated
+                LatinTextFilter.toPlainLatinOrNull(translated)
+                    ?: error("El resultado tiene caracteres no latinos, prueba otro idioma")
             }
         }
 }

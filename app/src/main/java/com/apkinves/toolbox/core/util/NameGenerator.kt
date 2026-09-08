@@ -46,6 +46,18 @@ object NameGenerator {
         Language("lt", "Lituano"),
         Language("sq", "Albanés"),
         Language("mt", "Maltés"),
+        Language("eo", "Esperanto"),
+        Language("ca", "Catalán"),
+        Language("gl", "Gallego"),
+        Language("zu", "Zulú"),
+        Language("xh", "Xhosa"),
+        Language("yo", "Yoruba"),
+        Language("sm", "Samoano"),
+        Language("ro", "Rumano"),
+        Language("fr", "Francés"),
+        Language("pt", "Portugués"),
+        Language("sk", "Eslovaco"),
+        Language("sl", "Esloveno"),
     )
 
     private val WORDS: Map<Theme, List<String>> = mapOf(

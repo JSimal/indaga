@@ -66,8 +66,30 @@ fun NameGeneratorScreen() {
                     result = it.replaceFirstChar { c -> c.uppercase() }
                     resultLangLabel = lang.label
                 },
-                onFailure = { error = "No se pudo traducir (${it.message ?: "error de red"})" },
+                onFailure = { error = "No se pudo traducir (${it.message ?: "error de red"}). Prueba otro idioma." },
             )
+            loading = false
+        }
+    }
+
+    fun runGenerate() {
+        loading = true
+        error = ""
+        result = null
+        scope.launch {
+            var success = false
+            repeat(6) { _ ->
+                if (success) return@repeat
+                val w = NameGenerator.randomWord(theme)
+                val lang = language ?: NameGenerator.randomLanguage()
+                TranslatorClient.translate(w, lang.code).onSuccess {
+                    word = w
+                    result = it.replaceFirstChar { c -> c.uppercase() }
+                    resultLangLabel = lang.label
+                    success = true
+                }
+            }
+            if (!success) error = "No se encontró un resultado en alfabeto latino tras varios intentos, prueba de nuevo."
             loading = false
         }
     }
@@ -79,8 +101,9 @@ fun NameGeneratorScreen() {
         Text("Generador de nombres", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
         Text(
             "Sugiere una palabra por temática (o de cualquiera) y tradúcela a un idioma poco habitual: el " +
-                "resultado suele ser un nombre corto, legible y llamativo. Sirve para alias, proyectos, " +
-                "personajes o cualquier nombre en clave que necesites.",
+                "resultado suele ser un nombre corto, legible y llamativo. Se filtran los resultados con " +
+                "alfabeto no latino (cirílico, chino...), así que siempre sale en letras normales + ñ. " +
+                "Sirve para alias, proyectos, personajes o cualquier nombre en clave que necesites.",
             style = MaterialTheme.typography.bodySmall,
         )
 
@@ -127,11 +150,7 @@ fun NameGeneratorScreen() {
         ) { Text(if (loading) "Traduciendo..." else "Traducir") }
 
         Button(
-            onClick = {
-                val w = NameGenerator.randomWord(theme)
-                word = w
-                runTranslate(w, language ?: NameGenerator.randomLanguage())
-            },
+            onClick = { runGenerate() },
             enabled = !loading,
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Generar nombre (sugerir + traducir)") }
