@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.apkinves.toolbox.core.net.DomainAvailabilityChecker
 import com.apkinves.toolbox.core.unified.UnifiedReport
 import com.apkinves.toolbox.core.util.DorkGenerator
 import com.apkinves.toolbox.core.util.NavPrefill
@@ -210,6 +211,31 @@ fun UnifiedSummaryCards(r: UnifiedReport, onOpenRss: (() -> Unit)? = null, onOpe
             ScamCheckLinks.SITES.forEach { site ->
                 Button(onClick = { openUrl(ScamCheckLinks.urlFor(site, r.target)) }, modifier = Modifier.fillMaxWidth()) {
                     Text(if (site.directLookup) "Comprobar en ${site.label}" else "Buscar en ${site.label} (no garantizado)")
+                }
+            }
+        }
+
+        r.securityHeaders?.let { headers ->
+            InfoCard(title = "🧱 Cabeceras de seguridad HTTP") {
+                Text("${headers.presentCount}/6 presentes", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                InfoRow("Strict-Transport-Security", headers.hsts ?: "ausente")
+                InfoRow("Content-Security-Policy", headers.csp ?: "ausente")
+                InfoRow("X-Content-Type-Options", headers.xContentTypeOptions ?: "ausente")
+                InfoRow("X-Frame-Options", headers.xFrameOptions ?: "ausente")
+                InfoRow("Referrer-Policy", headers.referrerPolicy ?: "ausente")
+                InfoRow("Permissions-Policy", headers.permissionsPolicy ?: "ausente")
+            }
+        }
+
+        if (r.domainAvailability.isNotEmpty()) {
+            InfoCard(title = "🏷️ Disponibilidad en otros TLD") {
+                r.domainAvailability.forEach { tld ->
+                    val (label, color) = when (tld.status) {
+                        DomainAvailabilityChecker.Status.REGISTRADO -> "registrado" to CyberColors.NeonAmber
+                        DomainAvailabilityChecker.Status.PROBABLEMENTE_LIBRE -> "probablemente libre" to CyberColors.NeonGreen
+                        DomainAvailabilityChecker.Status.DESCONOCIDO -> "no verificado" to MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                    Text(".${tld.tld} — $label", style = MaterialTheme.typography.bodySmall, color = color)
                 }
             }
         }

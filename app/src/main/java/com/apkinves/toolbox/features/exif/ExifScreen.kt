@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.apkinves.toolbox.core.net.ReverseGeocodeClient
 import com.apkinves.toolbox.core.util.ExifExtractor
 import com.apkinves.toolbox.ui.common.ResultBlock
 import kotlinx.coroutines.launch
@@ -30,6 +31,8 @@ import kotlinx.coroutines.launch
 fun ExifScreen() {
     var result by remember { mutableStateOf("") }
     var mapCoords by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+    var address by remember { mutableStateOf("") }
+    var loadingAddress by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -38,6 +41,7 @@ fun ExifScreen() {
         scope.launch {
             val report = ExifExtractor.extract(context, uri)
             mapCoords = null
+            address = ""
             result = report.fold(
                 onSuccess = {
                     if (it.latitude != null && it.longitude != null) mapCoords = it.latitude to it.longitude
@@ -72,6 +76,19 @@ fun ExifScreen() {
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) { Text("Abrir ubicación en el mapa") }
+            Button(
+                onClick = {
+                    loadingAddress = true
+                    scope.launch {
+                        address = ReverseGeocodeClient.reverseGeocode(lat, lon)
+                            .getOrElse { "No se pudo obtener la dirección: ${it.message}" }
+                        loadingAddress = false
+                    }
+                },
+                enabled = !loadingAddress,
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(if (loadingAddress) "Buscando dirección..." else "Ver dirección aproximada") }
+            ResultBlock(address)
         }
     }
 }

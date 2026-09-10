@@ -4,7 +4,9 @@ import com.apkinves.toolbox.core.net.AsnLookupClient
 import com.apkinves.toolbox.core.net.BannerGrabber
 import com.apkinves.toolbox.core.net.BlacklistChecker
 import com.apkinves.toolbox.core.net.DnsClient
+import com.apkinves.toolbox.core.net.DomainAvailabilityChecker
 import com.apkinves.toolbox.core.net.EmailSecurityClient
+import com.apkinves.toolbox.core.net.SecurityHeadersClient
 import com.apkinves.toolbox.core.net.HostingPatternDetector
 import com.apkinves.toolbox.core.net.IpInfo
 import com.apkinves.toolbox.core.net.IpInfoClient
@@ -63,6 +65,8 @@ data class UnifiedReport(
     val waybackSnapshot: WaybackSnapshot?,
     val ipInfoError: String?,
     val typosquatRegistered: List<TyposquattingDetector.Candidate>,
+    val securityHeaders: SecurityHeadersClient.Report?,
+    val domainAvailability: List<DomainAvailabilityChecker.TldResult>,
 )
 
 /** Lógica compartida entre la Consulta Única y la Consulta por Lotes. */
@@ -156,6 +160,12 @@ object UnifiedQueryEngine {
                 }.getOrElse { emptyList() }
             } else emptyList()
         }
+        val securityHeadersJob = async {
+            if (isDomain) SecurityHeadersClient.check(value).getOrNull() else null
+        }
+        val domainAvailabilityJob = async {
+            if (isDomain) runCatching { DomainAvailabilityChecker.checkAll(value) }.getOrElse { emptyList() } else emptyList()
+        }
 
         val openPorts = portsJob.await()
         val host = ipForChecks ?: value
@@ -203,6 +213,8 @@ object UnifiedQueryEngine {
             waybackSnapshot = waybackJob.await(),
             ipInfoError = ipInfoError,
             typosquatRegistered = typosquatJob.await(),
+            securityHeaders = securityHeadersJob.await(),
+            domainAvailability = domainAvailabilityJob.await(),
         )
     }
 
@@ -230,6 +242,9 @@ object UnifiedQueryEngine {
         if (r.subdomains.isNotEmpty()) appendLine("Subdominios (${r.subdomains.size}): ${r.subdomains.take(10).joinToString(", ")}")
         r.waybackSnapshot?.let { appendLine("Wayback: copia archivada en ${it.timestamp}") }
         if (r.typosquatRegistered.isNotEmpty()) appendLine("⚠ Dominios parecidos ya registrados: ${r.typosquatRegistered.joinToString(", ") { it.domain }}")
+        r.securityHeaders?.let { appendLine("Cabeceras de seguridad presentes: ${it.presentCount}/6") }
+        val freeTlds = r.domainAvailability.filter { it.status == DomainAvailabilityChecker.Status.PROBABLEMENTE_LIBRE }
+        if (freeTlds.isNotEmpty()) appendLine("Posiblemente libres: ${freeTlds.joinToString(", ") { ".${it.tld}" }}")
         appendLine("-- DNS --")
         r.dnsRecords.forEach { (type, records) -> appendLine("$type: ${records.joinToString { rec -> rec.value }}") }
         appendLine("-- Puertos abiertos --")

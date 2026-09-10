@@ -89,6 +89,19 @@ object PhonePrefixLookup {
         "966" to "Arabia Saudí",
     )
 
+    // Longitud habitual del número nacional (sin el prefijo de país) para los países más comunes.
+    // No es una validación completa (eso requeriría una librería tipo libphonenumber), solo un
+    // filtro rápido de longitud plausible.
+    private val NATIONAL_LENGTH = mapOf(
+        "1" to (10..10), "34" to (9..9), "33" to (9..9), "49" to (10..11), "44" to (10..10),
+        "39" to (9..10), "351" to (9..9), "31" to (9..9), "32" to (8..9), "41" to (9..9),
+        "43" to (10..11), "45" to (8..8), "46" to (7..9), "47" to (8..8), "48" to (9..9),
+        "52" to (10..10), "54" to (10..11), "55" to (10..11), "56" to (9..9), "57" to (10..10),
+        "86" to (11..11), "81" to (10..10), "82" to (9..10), "91" to (10..10),
+        "61" to (9..9), "64" to (8..9), "353" to (9..9), "420" to (9..9), "421" to (9..9),
+        "972" to (9..9), "971" to (9..9),
+    )
+
     data class PrefixResult(val prefix: String, val country: String)
 
     fun lookup(input: String): PrefixResult? {
@@ -99,5 +112,14 @@ object PhonePrefixLookup {
             PREFIXES[candidate]?.let { return PrefixResult(candidate, it) }
         }
         return null
+    }
+
+    /** Devuelve null si no hay datos de longitud para ese prefijo, o true/false según sea plausible. */
+    fun isPlausibleLength(input: String): Boolean? {
+        val digits = input.trim().removePrefix("+").filter { it.isDigit() }
+        val result = lookup(input) ?: return null
+        val nationalLength = digits.length - result.prefix.length
+        val range = NATIONAL_LENGTH[result.prefix] ?: return null
+        return nationalLength in range
     }
 }

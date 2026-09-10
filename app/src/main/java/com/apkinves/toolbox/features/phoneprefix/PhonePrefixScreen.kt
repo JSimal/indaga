@@ -22,7 +22,15 @@ fun PhonePrefixScreen() {
         loading = false,
         onRun = {
             val r = PhonePrefixLookup.lookup(input)
-            result = if (r == null) "Prefijo no reconocido en la tabla local" else "+${r.prefix} → ${r.country}"
+            result = if (r == null) "Prefijo no reconocido en la tabla local"
+            else buildString {
+                appendLine("+${r.prefix} → ${r.country}")
+                when (PhonePrefixLookup.isPlausibleLength(input)) {
+                    true -> append("✓ Longitud plausible para ese país")
+                    false -> append("⚠ Longitud poco habitual para ese país (puede ser válido igualmente)")
+                    null -> append("Longitud no verificada (sin datos para ese país)")
+                }
+            }
         },
     ) {
         ResultBlock(result)

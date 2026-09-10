@@ -49,7 +49,10 @@ import com.apkinves.toolbox.features.hash.HashScreen
 import com.apkinves.toolbox.features.httpcodes.HttpCodesScreen
 import com.apkinves.toolbox.features.history.HistoryScreen
 import com.apkinves.toolbox.features.iban.ValidatorsScreen
+import com.apkinves.toolbox.features.imageforensics.ImageForensicsScreen
 import com.apkinves.toolbox.features.localnet.LocalNetScreen
+import com.apkinves.toolbox.features.mediameta.MediaMetaScreen
+import com.apkinves.toolbox.features.morse.MorseScreen
 import com.apkinves.toolbox.features.namegen.NameGeneratorScreen
 import com.apkinves.toolbox.features.nettools.NetToolsScreen
 import com.apkinves.toolbox.features.nfc.NfcScreen
@@ -62,9 +65,13 @@ import com.apkinves.toolbox.features.qrscan.QrScanScreen
 import com.apkinves.toolbox.features.reverseimg.ReverseImageScreen
 import com.apkinves.toolbox.features.rss.RssScreen
 import com.apkinves.toolbox.features.stego.StegoScreen
+import com.apkinves.toolbox.features.textdiff.TextDiffScreen
+import com.apkinves.toolbox.features.textextractor.TextExtractorScreen
 import com.apkinves.toolbox.features.traceroute.TracerouteScreen
 import com.apkinves.toolbox.features.unified.UnifiedQueryScreen
+import com.apkinves.toolbox.features.urlexpander.UrlExpanderScreen
 import com.apkinves.toolbox.features.username.UsernameCheckScreen
+import com.apkinves.toolbox.features.vindecoder.VinDecoderScreen
 import com.apkinves.toolbox.features.watchlist.WatchlistScreen
 import com.apkinves.toolbox.features.wifirange.WifiRangeScreen
 import com.apkinves.toolbox.features.wifiscan.WifiScanScreen
@@ -112,6 +119,13 @@ object Routes {
     const val CURRENCY = "currency"
     const val QCODES = "qcodes"
     const val NAME_GENERATOR = "name_generator"
+    const val URL_EXPANDER = "url_expander"
+    const val TEXT_EXTRACTOR = "text_extractor"
+    const val MORSE = "morse"
+    const val VIN_DECODER = "vin_decoder"
+    const val TEXT_DIFF = "text_diff"
+    const val IMAGE_FORENSICS = "image_forensics"
+    const val MEDIA_META = "media_meta"
 }
 
 data class ToolEntry(val route: String, val title: String, val description: String, val category: String)
@@ -149,6 +163,7 @@ val TOOLS = listOf(
 
     ToolEntry(Routes.RSS, "Lector RSS/Atom", "Feeds de un sitio", CAT_WEB),
     ToolEntry(Routes.EMAIL_VERIFY, "Verificador de email", "Sintaxis, MX, permutador de direcciones y analizador de cabeceras", CAT_WEB),
+    ToolEntry(Routes.URL_EXPANDER, "Expansor de enlaces", "Sigue redirecciones de bit.ly/tinyurl/etc. sin abrirlos", CAT_WEB),
 
     ToolEntry(Routes.TRACEROUTE, "Conectividad y latencia", "¿Está el destino alcanzable? ¿Con qué latencia?", CAT_RED),
     ToolEntry(Routes.CIDR, "Calculadora CIDR", "Rango, máscara, hosts usables", CAT_RED),
@@ -172,8 +187,10 @@ val TOOLS = listOf(
 
     ToolEntry(Routes.FILE_TYPE, "Tipo de archivo real", "Detecta por cabecera binaria", CAT_ARCHIVOS),
     ToolEntry(Routes.FILE_HASH, "Comparar archivos", "¿Son dos archivos idénticos?", CAT_ARCHIVOS),
-    ToolEntry(Routes.EXIF, "Metadatos EXIF", "Cámara, fecha, ubicación GPS", CAT_ARCHIVOS),
+    ToolEntry(Routes.EXIF, "Metadatos EXIF", "Cámara, fecha, ubicación GPS + dirección aproximada", CAT_ARCHIVOS),
     ToolEntry(Routes.PDF_META, "Metadatos PDF", "Autor, creador, fechas ocultas", CAT_ARCHIVOS),
+    ToolEntry(Routes.MEDIA_META, "Metadatos audio/vídeo", "Título, artista, duración, resolución, GPS si lo incluye", CAT_ARCHIVOS),
+    ToolEntry(Routes.IMAGE_FORENSICS, "Análisis de manipulación (ELA)", "Detecta zonas recomprimidas de forma distinta en un JPEG", CAT_ARCHIVOS),
 
     ToolEntry(Routes.LOCAL_NET, "Red local", "Dispositivos activos en tu WiFi", CAT_HARDWARE),
     ToolEntry(Routes.WIFI_SCAN, "WiFi cercanas", "Redes visibles + detector de evil twin (pide ubicación)", CAT_HARDWARE),
@@ -186,6 +203,10 @@ val TOOLS = listOf(
     ToolEntry(Routes.FREQ_BANDS, "Bandas de frecuencia", "Qué servicio usa cada banda", CAT_UTILIDADES),
     ToolEntry(Routes.WIFI_RANGE, "Alcance WiFi", "Estimación teórica en espacio libre", CAT_UTILIDADES),
     ToolEntry(Routes.QCODES, "Código Q (radioaficionado)", "Los códigos Q más usados en radiotelegrafía", CAT_UTILIDADES),
+    ToolEntry(Routes.MORSE, "Traductor Morse", "Texto ↔ Morse", CAT_UTILIDADES),
+    ToolEntry(Routes.VIN_DECODER, "Decodificador VIN", "Fabricante, país y año de un número de bastidor", CAT_UTILIDADES),
+    ToolEntry(Routes.TEXT_EXTRACTOR, "Extractor de enlaces/emails/teléfonos", "Saca esos datos de un texto pegado", CAT_UTILIDADES),
+    ToolEntry(Routes.TEXT_DIFF, "Comparador de textos", "Diferencias línea a línea entre dos versiones", CAT_UTILIDADES),
 )
 
 @Composable
@@ -298,11 +319,14 @@ private fun ToolboxNavigation() {
             composable(Routes.ATM_FINDER) { AtmFinderScreen() }
             composable(Routes.EMAIL_VERIFY) { EmailVerifyScreen() }
             composable(Routes.CURRENCY) { CurrencyScreen() }
+            composable(Routes.URL_EXPANDER) { UrlExpanderScreen() }
 
             composable(Routes.FILE_TYPE) { FileTypeScreen() }
             composable(Routes.FILE_HASH) { FileHashScreen() }
             composable(Routes.EXIF) { ExifScreen() }
             composable(Routes.PDF_META) { PdfMetaScreen() }
+            composable(Routes.MEDIA_META) { MediaMetaScreen() }
+            composable(Routes.IMAGE_FORENSICS) { ImageForensicsScreen() }
 
             composable(Routes.LOCAL_NET) { LocalNetScreen() }
             composable(Routes.WIFI_SCAN) { WifiScanScreen() }
@@ -322,6 +346,10 @@ private fun ToolboxNavigation() {
             composable(Routes.QR_SCAN) { QrScanScreen() }
             composable(Routes.QCODES) { QCodesScreen() }
             composable(Routes.NAME_GENERATOR) { NameGeneratorScreen() }
+            composable(Routes.MORSE) { MorseScreen() }
+            composable(Routes.VIN_DECODER) { VinDecoderScreen() }
+            composable(Routes.TEXT_EXTRACTOR) { TextExtractorScreen() }
+            composable(Routes.TEXT_DIFF) { TextDiffScreen() }
         }
     }
 }
