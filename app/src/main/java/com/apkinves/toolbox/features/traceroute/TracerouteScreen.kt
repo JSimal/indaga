@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.apkinves.toolbox.core.net.TracerouteClient
 import com.apkinves.toolbox.data.CaseRepository
+import com.apkinves.toolbox.ui.common.OpsecWarning
 import com.apkinves.toolbox.ui.common.ResultBlock
 import com.apkinves.toolbox.ui.common.ToolScreenScaffold
 import kotlinx.coroutines.launch
@@ -32,6 +33,7 @@ fun TracerouteScreen() {
         inputValue = target,
         onInputChange = { target = it },
         loading = loading,
+        extraControls = { OpsecWarning() },
         onRun = {
             loading = true
             scope.launch {

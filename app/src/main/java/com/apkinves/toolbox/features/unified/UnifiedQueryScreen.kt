@@ -53,6 +53,7 @@ fun UnifiedQueryScreen(navController: NavHostController? = null) {
                 "fraude/scam y de búsqueda avanzada... todo en una sola consulta.",
             style = MaterialTheme.typography.bodySmall,
         )
+        com.apkinves.toolbox.ui.common.OpsecWarning()
         OutlinedTextField(
             value = target,
             onValueChange = { target = it },
@@ -60,25 +61,26 @@ fun UnifiedQueryScreen(navController: NavHostController? = null) {
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
-        Button(
-            onClick = {
-                val value = target.trim()
-                val kind = detectKind(value)
-                if (kind == InputKind.UNKNOWN) {
-                    errorText = "No se reconoce como IP ni como dominio."
-                    report = null
-                    return@Button
-                }
-                errorText = ""
-                loading = true
+        fun runQuery(value: String) {
+            val kind = detectKind(value)
+            if (kind == InputKind.UNKNOWN) {
+                errorText = "No se reconoce como IP ni como dominio."
                 report = null
-                scope.launch {
-                    val result = UnifiedQueryEngine.run(value, kind)
-                    report = result
-                    loading = false
-                    repo.add("Info Dominios Web", value, "Informe combinado", UnifiedQueryEngine.buildRawSummary(result))
-                }
-            },
+                return
+            }
+            errorText = ""
+            loading = true
+            report = null
+            scope.launch {
+                val result = UnifiedQueryEngine.run(value, kind)
+                report = result
+                loading = false
+                repo.add("Info Dominios Web", value, "Informe combinado", UnifiedQueryEngine.buildRawSummary(result))
+            }
+        }
+
+        Button(
+            onClick = { runQuery(target.trim()) },
             enabled = target.isNotBlank() && !loading,
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -93,6 +95,7 @@ fun UnifiedQueryScreen(navController: NavHostController? = null) {
                 r,
                 onOpenRss = navController?.let { nav -> { nav.navigate(Routes.RSS) } },
                 onOpenCve = navController?.let { nav -> { nav.navigate(Routes.CVE) } },
+                onPivotToIp = { ip -> target = ip; runQuery(ip) },
             )
         }
 

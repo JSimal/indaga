@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.apkinves.toolbox.core.net.PingClient
 import com.apkinves.toolbox.core.net.TelnetClient
+import com.apkinves.toolbox.ui.common.OpsecWarning
 import com.apkinves.toolbox.ui.common.ResultBlock
 import kotlinx.coroutines.launch
 
@@ -40,6 +41,7 @@ fun NetToolsScreen() {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text("Ping", style = MaterialTheme.typography.headlineSmall)
+        OpsecWarning()
         OutlinedTextField(value = pingHost, onValueChange = { pingHost = it }, label = { Text("Host o IP") }, modifier = Modifier.fillMaxWidth())
         Button(onClick = {
             scope.launch {

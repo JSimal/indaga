@@ -27,6 +27,7 @@ import com.apkinves.toolbox.core.unified.InputKind
 import com.apkinves.toolbox.core.unified.UnifiedQueryEngine
 import com.apkinves.toolbox.core.unified.UnifiedReport
 import com.apkinves.toolbox.core.unified.detectKind
+import com.apkinves.toolbox.ui.common.OpsecWarning
 import com.apkinves.toolbox.ui.common.UnifiedSummaryCards
 import kotlinx.coroutines.launch
 
@@ -51,6 +52,7 @@ fun BatchQueryScreen() {
                 "compartir un informe combinado al final.",
             style = MaterialTheme.typography.bodySmall,
         )
+        OpsecWarning()
         OutlinedTextField(
             value = input,
             onValueChange = { input = it },

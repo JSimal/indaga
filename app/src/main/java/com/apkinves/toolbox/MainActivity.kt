@@ -8,15 +8,17 @@ import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.fragment.app.FragmentActivity
 import com.apkinves.toolbox.core.net.NfcTagHolder
+import com.apkinves.toolbox.ui.AppLockGate
+import com.apkinves.toolbox.ui.AppLockPreference
 import com.apkinves.toolbox.ui.ToolboxApp
 import com.apkinves.toolbox.ui.theme.ThemePreference
 import com.apkinves.toolbox.ui.theme.ToolboxTheme
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
     private var nfcAdapter: NfcAdapter? = null
 
@@ -24,10 +26,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         ThemePreference.init(this)
+        AppLockPreference.init(this)
         enableEdgeToEdge()
         setContent {
             ToolboxTheme {
-                ToolboxApp()
+                AppLockGate {
+                    ToolboxApp()
+                }
             }
         }
         handleNfcIntent(intent)

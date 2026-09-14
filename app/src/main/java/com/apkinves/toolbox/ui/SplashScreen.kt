@@ -52,7 +52,7 @@ fun SplashScreen() {
     LaunchedEffect(Unit) {
         for (i in SPLASH_LINES.indices) {
             visibleLines = i + 1
-            delay(1250)
+            delay(625)
         }
     }
 

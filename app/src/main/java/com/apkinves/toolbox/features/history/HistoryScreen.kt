@@ -52,8 +52,13 @@ fun HistoryScreen() {
         ) { Text("Compartir informe") }
 
         Button(onClick = { scope.launch { repo.clear() } }, modifier = Modifier.fillMaxWidth()) {
-            Text("Borrar historial")
+            Text("Borrado seguro del historial (irreversible)")
         }
+        Text(
+            "El historial se guarda cifrado en el dispositivo. Este botón lo sobrescribe con datos aleatorios antes de borrarlo, para que no quede recuperable.",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(entries) { entry ->

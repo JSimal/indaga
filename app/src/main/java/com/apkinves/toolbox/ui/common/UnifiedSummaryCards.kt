@@ -25,7 +25,12 @@ import com.apkinves.toolbox.core.util.ScamCheckLinks
 import com.apkinves.toolbox.ui.theme.CyberColors
 
 @Composable
-fun UnifiedSummaryCards(r: UnifiedReport, onOpenRss: (() -> Unit)? = null, onOpenCve: (() -> Unit)? = null) {
+fun UnifiedSummaryCards(
+    r: UnifiedReport,
+    onOpenRss: (() -> Unit)? = null,
+    onOpenCve: (() -> Unit)? = null,
+    onPivotToIp: ((String) -> Unit)? = null,
+) {
     val context = LocalContext.current
     fun openUrl(url: String) {
         runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
@@ -77,6 +82,11 @@ fun UnifiedSummaryCards(r: UnifiedReport, onOpenRss: (() -> Unit)? = null, onOpe
                 Text(flags.joinToString("  •  "), style = MaterialTheme.typography.bodySmall, color = CyberColors.NeonAmber, fontWeight = FontWeight.Bold)
             } else {
                 Text("Sin indicios de VPN/proxy/hosting.", style = MaterialTheme.typography.bodySmall, color = CyberColors.NeonGreen)
+            }
+            if (onPivotToIp != null && r.kind == com.apkinves.toolbox.core.unified.InputKind.DOMAIN && info.query.isNotBlank()) {
+                Button(onClick = { onPivotToIp(info.query) }, modifier = Modifier.fillMaxWidth()) {
+                    Text("Pivotar: analizar esta IP (${info.query})")
+                }
             }
         }
     }
