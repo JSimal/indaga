@@ -91,6 +91,30 @@ fun UnifiedSummaryCards(
         }
     }
 
+    r.internetDb?.let { db ->
+        InfoCard(title = "🛰️ Shodan InternetDB") {
+            Text(
+                "Puertos y servicios vistos en escaneos pasivos de Shodan (puede incluir cosas que ya no estén activas).",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (db.ports.isNotEmpty()) InfoRow("Puertos vistos por Shodan", db.ports.joinToString(", "))
+            if (db.hostnames.isNotEmpty()) InfoRow("Hostnames asociados", db.hostnames.joinToString("\n"))
+            if (db.cpes.isNotEmpty()) InfoRow("CPEs (software identificado)", db.cpes.joinToString("\n"))
+            if (db.vulns.isNotEmpty()) {
+                Text(
+                    "⚠ CVEs conocidas asociadas a esta IP: ${db.vulns.joinToString(", ")}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = CyberColors.NeonRed,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+            if (db.tags.isNotEmpty()) InfoRow("Tags", db.tags.joinToString(", "))
+            if (db.ports.isEmpty() && db.hostnames.isEmpty() && db.vulns.isEmpty() && db.tags.isEmpty()) {
+                Text("Shodan no tiene datos adicionales para esta IP.", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+
     if (r.dnsRecords.isNotEmpty()) {
         InfoCard(title = "🌐 Registros DNS") {
             r.dnsRecords.forEach { (type, records) ->

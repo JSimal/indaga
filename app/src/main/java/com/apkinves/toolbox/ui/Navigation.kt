@@ -64,6 +64,7 @@ import com.apkinves.toolbox.features.qcodes.QCodesScreen
 import com.apkinves.toolbox.features.qrscan.QrScanScreen
 import com.apkinves.toolbox.features.reverseimg.ReverseImageScreen
 import com.apkinves.toolbox.features.rss.RssScreen
+import com.apkinves.toolbox.features.servicehealth.ServiceHealthScreen
 import com.apkinves.toolbox.features.stego.StegoScreen
 import com.apkinves.toolbox.features.textdiff.TextDiffScreen
 import com.apkinves.toolbox.features.textextractor.TextExtractorScreen
@@ -126,6 +127,7 @@ object Routes {
     const val TEXT_DIFF = "text_diff"
     const val IMAGE_FORENSICS = "image_forensics"
     const val MEDIA_META = "media_meta"
+    const val SERVICE_HEALTH = "service_health"
 }
 
 data class ToolEntry(val route: String, val title: String, val description: String, val category: String)
@@ -159,6 +161,7 @@ val TOOLS = listOf(
     ToolEntry(Routes.HISTORY, "Historial / Caso", "Consultas guardadas", CAT_GENERAL),
     ToolEntry(Routes.WATCHLIST, "Vigilancia", "Avisos si cambia una web o aparecen subdominios nuevos", CAT_GENERAL),
     ToolEntry(Routes.BATCH_QUERY, "Consulta por lotes", "Varios dominios/IPs a la vez, informe combinado", CAT_GENERAL),
+    ToolEntry(Routes.SERVICE_HEALTH, "Estado de servicios", "Comprueba si las APIs externas usadas por la app están respondiendo", CAT_GENERAL),
     ToolEntry(Routes.NAME_GENERATOR, "Generador de nombres", "Palabra por temática traducida a idiomas poco habituales, + traductor libre", CAT_GENERAL),
 
     ToolEntry(Routes.RSS, "Lector RSS/Atom", "Feeds de un sitio", CAT_WEB),
@@ -307,6 +310,7 @@ private fun ToolboxNavigation() {
             composable(Routes.HOME) { HomeScreen(navController) }
             composable(Routes.UNIFIED) { UnifiedQueryScreen(navController) }
             composable(Routes.BATCH_QUERY) { BatchQueryScreen() }
+            composable(Routes.SERVICE_HEALTH) { ServiceHealthScreen() }
             composable(Routes.TRACEROUTE) { TracerouteScreen() }
             composable(Routes.CIDR) { CidrScreen() }
             composable(Routes.HASH) { HashScreen() }

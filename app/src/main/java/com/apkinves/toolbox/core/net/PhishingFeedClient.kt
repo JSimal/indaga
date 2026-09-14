@@ -1,8 +1,6 @@
 package com.apkinves.toolbox.core.net
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
@@ -20,11 +18,7 @@ import java.net.URL
 object PhishingFeedClient {
 
     private const val FEED_URL = "https://openphish.com/feed.txt"
-    private const val CACHE_TTL_MS = 2 * 60 * 1000L
-
-    private val mutex = Mutex()
-    private var cachedBody: String? = null
-    private var cachedAt: Long = 0
+    private val cache = TtlCache<String, String>(2 * 60 * 1000L)
 
     suspend fun checkDomain(domain: String): Result<Boolean> = runCatching {
         val body = fetchFeed()
@@ -32,11 +26,8 @@ object PhishingFeedClient {
         body.lineSequence().any { it.contains(target, ignoreCase = true) }
     }
 
-    private suspend fun fetchFeed(): String = mutex.withLock {
-        val now = System.currentTimeMillis()
-        cachedBody?.let { if (now - cachedAt < CACHE_TTL_MS) return it }
-
-        val fresh = withContext(Dispatchers.IO) {
+    private suspend fun fetchFeed(): String = cache.getOrFetch(FEED_URL) {
+        withContext(Dispatchers.IO) {
             val conn = URL(FEED_URL).openConnection() as HttpURLConnection
             conn.connectTimeout = 8000
             conn.readTimeout = 10000
@@ -48,8 +39,5 @@ object PhishingFeedClient {
                 conn.disconnect()
             }
         }
-        cachedBody = fresh
-        cachedAt = now
-        fresh
     }
 }

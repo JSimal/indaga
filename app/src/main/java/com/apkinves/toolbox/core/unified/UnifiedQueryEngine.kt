@@ -8,6 +8,7 @@ import com.apkinves.toolbox.core.net.DomainAvailabilityChecker
 import com.apkinves.toolbox.core.net.EmailSecurityClient
 import com.apkinves.toolbox.core.net.SecurityHeadersClient
 import com.apkinves.toolbox.core.net.HostingPatternDetector
+import com.apkinves.toolbox.core.net.InternetDbClient
 import com.apkinves.toolbox.core.net.IpInfo
 import com.apkinves.toolbox.core.net.IpInfoClient
 import com.apkinves.toolbox.core.net.MetaExtractor
@@ -67,6 +68,7 @@ data class UnifiedReport(
     val typosquatRegistered: List<TyposquattingDetector.Candidate>,
     val securityHeaders: SecurityHeadersClient.Report?,
     val domainAvailability: List<DomainAvailabilityChecker.TldResult>,
+    val internetDb: InternetDbClient.InternetDbInfo?,
 )
 
 /** Lógica compartida entre la Consulta Única y la Consulta por Lotes. */
@@ -110,6 +112,9 @@ object UnifiedQueryEngine {
         }
         val reverseDnsJob = async {
             ipForChecks?.let { runCatching { DnsClient.reverseLookup(it) }.getOrNull() }
+        }
+        val internetDbJob = async {
+            ipForChecks?.let { runCatching { InternetDbClient.lookup(it) }.getOrNull() }
         }
 
         val sslJob = async {
@@ -215,6 +220,7 @@ object UnifiedQueryEngine {
             typosquatRegistered = typosquatJob.await(),
             securityHeaders = securityHeadersJob.await(),
             domainAvailability = domainAvailabilityJob.await(),
+            internetDb = internetDbJob.await(),
         )
     }
 
@@ -230,6 +236,10 @@ object UnifiedQueryEngine {
         r.ipInfo?.let { appendLine("${it.country} · ${it.isp} · proxy=${it.proxy} hosting=${it.hosting}") }
             ?: r.ipInfoError?.let { appendLine(it) }
         r.asnInfo?.let { appendLine("ASN AS${it.asn} (${it.name ?: "?"}) · prefijo ${it.bgpPrefix ?: "?"}") }
+        r.internetDb?.let { db ->
+            if (db.ports.isNotEmpty()) appendLine("Shodan InternetDB puertos: ${db.ports.joinToString(", ")}")
+            if (db.vulns.isNotEmpty()) appendLine("⚠ Shodan InternetDB CVEs: ${db.vulns.joinToString(", ")}")
+        }
         r.hostingPattern?.let { appendLine("Plataforma detectada por CNAME: $it") }
         r.phishingMatch?.let { appendLine(if (it) "⚠ Aparece en el feed de phishing de OpenPhish" else "No aparece en el feed de phishing de OpenPhish") }
         r.sslCerts?.firstOrNull()?.let { appendLine("Certificado SSL: ${it.subject} (expira en ${it.daysUntilExpiry} días)") }
