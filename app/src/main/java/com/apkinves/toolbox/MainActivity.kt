@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentActivity
 import com.apkinves.toolbox.core.net.NfcTagHolder
 import com.apkinves.toolbox.ui.AppLockGate
 import com.apkinves.toolbox.ui.AppLockPreference
+import com.apkinves.toolbox.ui.ProxyPreference
 import com.apkinves.toolbox.ui.ToolboxApp
 import com.apkinves.toolbox.ui.theme.ThemePreference
 import com.apkinves.toolbox.ui.theme.ToolboxTheme
@@ -27,6 +28,7 @@ class MainActivity : FragmentActivity() {
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         ThemePreference.init(this)
         AppLockPreference.init(this)
+        ProxyPreference.init(this)
         enableEdgeToEdge()
         setContent {
             ToolboxTheme {

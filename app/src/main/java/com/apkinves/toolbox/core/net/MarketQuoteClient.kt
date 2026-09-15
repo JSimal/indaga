@@ -48,7 +48,7 @@ object MarketQuoteClient {
     private suspend fun fetchOne(symbol: String, label: String): Quote? = withContext(Dispatchers.IO) {
         runCatching {
             val encoded = URLEncoder.encode(symbol, "UTF-8")
-            val conn = URL("https://query1.finance.yahoo.com/v8/finance/chart/$encoded?range=5d&interval=1d").openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection("https://query1.finance.yahoo.com/v8/finance/chart/$encoded?range=5d&interval=1d")
             conn.connectTimeout = 8000
             conn.readTimeout = 8000
             conn.setRequestProperty("User-Agent", "Mozilla/5.0")

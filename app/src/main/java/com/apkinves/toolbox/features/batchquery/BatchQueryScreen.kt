@@ -36,6 +36,7 @@ fun BatchQueryScreen() {
     var input by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var progressText by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf("") }
     val reports = remember { mutableStateListOf<UnifiedReport>() }
     val expanded = remember { mutableStateListOf<String>() }
     val scope = rememberCoroutineScope()
@@ -65,15 +66,22 @@ fun BatchQueryScreen() {
                 val targets = input.lineSequence().map { it.trim() }.filter { it.isNotBlank() }.distinct().toList()
                 if (targets.isEmpty()) return@Button
                 loading = true
+                error = ""
                 reports.clear()
                 scope.launch {
+                    val failed = mutableListOf<String>()
                     targets.forEachIndexed { i, t ->
                         progressText = "Consultando ${i + 1}/${targets.size}: $t"
                         val kind = detectKind(t)
                         if (kind != InputKind.UNKNOWN) {
-                            reports.add(UnifiedQueryEngine.run(t, kind))
+                            runCatching { UnifiedQueryEngine.run(t, kind) }
+                                .onSuccess { reports.add(it) }
+                                .onFailure { failed.add(t) }
+                        } else {
+                            failed.add(t)
                         }
                     }
+                    if (failed.isNotEmpty()) error = "No se pudieron consultar: ${failed.joinToString(", ")}"
                     progressText = ""
                     loading = false
                 }
@@ -86,6 +94,7 @@ fun BatchQueryScreen() {
             CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             Text(progressText, style = MaterialTheme.typography.bodySmall)
         }
+        if (error.isNotBlank()) Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
 
         if (reports.isNotEmpty()) {
             Button(

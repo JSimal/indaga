@@ -15,7 +15,7 @@ object MetaExtractor {
     suspend fun extract(url: String): Result<MetaReport> = withContext(Dispatchers.IO) {
         runCatching {
             val target = if (url.startsWith("http")) url else "https://$url"
-            val conn = URL(target).openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection(target)
             conn.connectTimeout = 6000
             conn.readTimeout = 6000
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Indaga-App)")

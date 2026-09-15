@@ -35,6 +35,7 @@ fun ToolScreenScaffold(
     loading: Boolean,
     runEnabled: Boolean = inputValue.isNotBlank(),
     extraControls: @Composable (() -> Unit)? = null,
+    error: String? = null,
     content: @Composable () -> Unit,
 ) {
     Column(
@@ -58,6 +59,9 @@ fun ToolScreenScaffold(
         }
         if (loading) {
             CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        }
+        if (!error.isNullOrBlank()) {
+            Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
         }
         content()
     }

@@ -25,7 +25,7 @@ object PwnedPasswordClient {
             val prefix = sha1.take(5)
             val suffix = sha1.substring(5)
 
-            val conn = URL("https://api.pwnedpasswords.com/range/$prefix").openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection("https://api.pwnedpasswords.com/range/$prefix")
             conn.connectTimeout = 8000
             conn.readTimeout = 8000
             conn.setRequestProperty("Add-Padding", "true")

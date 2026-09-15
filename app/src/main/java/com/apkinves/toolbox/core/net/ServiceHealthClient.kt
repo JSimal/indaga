@@ -60,7 +60,7 @@ object ServiceHealthClient {
     private suspend fun probe(p: Probe): ServiceCheck = withContext(Dispatchers.IO) {
         val start = System.currentTimeMillis()
         runCatching {
-            val conn = URL(p.url).openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection(p.url)
             conn.connectTimeout = 6000
             conn.readTimeout = 8000
             conn.instanceFollowRedirects = true

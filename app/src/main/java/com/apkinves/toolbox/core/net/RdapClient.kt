@@ -70,7 +70,7 @@ object RdapClient {
     }
 
     private fun fetch(url: String): Result<RdapSummary> = runCatching {
-        val conn = URL(url).openConnection() as HttpURLConnection
+        val conn = NetClient.openConnection(url)
         conn.connectTimeout = 8000
         conn.readTimeout = 8000
         conn.setRequestProperty("Accept", "application/rdap+json")

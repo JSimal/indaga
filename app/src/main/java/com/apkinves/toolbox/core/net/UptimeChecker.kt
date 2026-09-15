@@ -13,7 +13,7 @@ object UptimeChecker {
         val target = if (url.startsWith("http")) url else "https://$url"
         val start = System.currentTimeMillis()
         try {
-            val conn = URL(target).openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection(target)
             conn.connectTimeout = 8000
             conn.readTimeout = 8000
             conn.requestMethod = "HEAD"

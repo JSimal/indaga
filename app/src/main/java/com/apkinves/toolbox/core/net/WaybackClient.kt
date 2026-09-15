@@ -25,7 +25,7 @@ object WaybackClient {
         runCatching {
             val target = if (url.startsWith("http")) url else "https://$url"
             val encoded = URLEncoder.encode(target, "UTF-8")
-            val conn = URL("https://archive.org/wayback/available?url=$encoded").openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection("https://archive.org/wayback/available?url=$encoded")
             conn.connectTimeout = 8000
             conn.readTimeout = 8000
             try {

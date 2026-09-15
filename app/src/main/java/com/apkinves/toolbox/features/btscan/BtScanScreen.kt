@@ -94,7 +94,7 @@ fun BtScanScreen() {
             ) { Text(if (loading) "Buscando (unos 12s)..." else "Buscar dispositivos") }
         }
 
-        if (loading) CircularProgressIndicator()
+        if (loading) CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         if (error.isNotBlank()) Text("Error: $error", color = MaterialTheme.colorScheme.error)
 
         devices.forEach { device ->

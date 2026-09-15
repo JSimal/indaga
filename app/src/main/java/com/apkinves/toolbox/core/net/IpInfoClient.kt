@@ -38,8 +38,7 @@ object IpInfoClient {
     suspend fun lookup(ip: String): IpInfo = withContext(Dispatchers.IO) {
         val fields = "status,message,query,country,countryCode,regionName,city,zip,lat,lon," +
             "timezone,isp,org,as,proxy,hosting,mobile"
-        val url = URL("http://ip-api.com/json/$ip?fields=$fields")
-        val conn = url.openConnection() as HttpURLConnection
+        val conn = NetClient.openConnection("http://ip-api.com/json/$ip?fields=$fields")
         conn.connectTimeout = 7000
         conn.readTimeout = 7000
         try {

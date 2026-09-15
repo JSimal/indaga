@@ -62,7 +62,7 @@ fun PrivacyCheckScreen() {
             enabled = !loading,
             modifier = Modifier.fillMaxWidth(),
         ) { Text(if (loading) "Comprobando..." else "Comprobar") }
-        if (loading) CircularProgressIndicator()
+        if (loading) CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         ResultBlock(result)
     }
 }

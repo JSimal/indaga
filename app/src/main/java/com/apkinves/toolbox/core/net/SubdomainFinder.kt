@@ -31,8 +31,7 @@ object SubdomainFinder {
     }
 
     private fun findViaCrtSh(domain: String): List<String> {
-        val url = URL("https://crt.sh/?q=%25.${domain.trim()}&output=json")
-        val conn = url.openConnection() as HttpURLConnection
+        val conn = NetClient.openConnection("https://crt.sh/?q=%25.${domain.trim()}&output=json")
         conn.connectTimeout = 8000
         conn.readTimeout = 8000
         conn.setRequestProperty("User-Agent", "Indaga-App")
@@ -49,8 +48,7 @@ object SubdomainFinder {
     }
 
     private fun findViaCertSpotter(domain: String): List<String> {
-        val url = URL("https://api.certspotter.com/v1/issuances?domain=${domain.trim()}&include_subdomains=true&expand=dns_names")
-        val conn = url.openConnection() as HttpURLConnection
+        val conn = NetClient.openConnection("https://api.certspotter.com/v1/issuances?domain=${domain.trim()}&include_subdomains=true&expand=dns_names")
         conn.connectTimeout = 8000
         conn.readTimeout = 8000
         conn.setRequestProperty("User-Agent", "Indaga-App")

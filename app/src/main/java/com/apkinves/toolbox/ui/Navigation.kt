@@ -35,6 +35,7 @@ import com.apkinves.toolbox.features.apkanalyzer.ApkAnalyzerScreen
 import com.apkinves.toolbox.features.atmfinder.AtmFinderScreen
 import com.apkinves.toolbox.features.batchquery.BatchQueryScreen
 import com.apkinves.toolbox.features.btscan.BtScanScreen
+import com.apkinves.toolbox.features.casegraph.CaseGraphScreen
 import com.apkinves.toolbox.features.cidr.CidrScreen
 import com.apkinves.toolbox.features.currency.CurrencyScreen
 import com.apkinves.toolbox.features.cve.CveScreen
@@ -65,6 +66,7 @@ import com.apkinves.toolbox.features.qrscan.QrScanScreen
 import com.apkinves.toolbox.features.reverseimg.ReverseImageScreen
 import com.apkinves.toolbox.features.rss.RssScreen
 import com.apkinves.toolbox.features.servicehealth.ServiceHealthScreen
+import com.apkinves.toolbox.features.settings.SettingsScreen
 import com.apkinves.toolbox.features.stego.StegoScreen
 import com.apkinves.toolbox.features.textdiff.TextDiffScreen
 import com.apkinves.toolbox.features.textextractor.TextExtractorScreen
@@ -128,6 +130,8 @@ object Routes {
     const val IMAGE_FORENSICS = "image_forensics"
     const val MEDIA_META = "media_meta"
     const val SERVICE_HEALTH = "service_health"
+    const val SETTINGS = "settings"
+    const val CASE_GRAPH = "case_graph"
 }
 
 data class ToolEntry(val route: String, val title: String, val description: String, val category: String)
@@ -158,7 +162,9 @@ val CATEGORY_STYLES = mapOf(
 
 val TOOLS = listOf(
     ToolEntry(Routes.UNIFIED, "Info Dominios Web", "WHOIS, DNS, hosting, puertos, SSL, subdominios, tecnologías, email, listas negras, dominios parecidos, fraude/scam, dorks y más", CAT_GENERAL),
-    ToolEntry(Routes.HISTORY, "Historial / Caso", "Consultas guardadas", CAT_GENERAL),
+    ToolEntry(Routes.HISTORY, "Historial / Caso", "Consultas guardadas, exportación PDF/JSON/CSV con hash de custodia", CAT_GENERAL),
+    ToolEntry(Routes.CASE_GRAPH, "Correlación de casos", "IPs y dominios que se repiten entre distintas consultas guardadas", CAT_GENERAL),
+    ToolEntry(Routes.SETTINGS, "Ajustes", "Proxy SOCKS5 / Tor para las consultas de red", CAT_GENERAL),
     ToolEntry(Routes.WATCHLIST, "Vigilancia", "Avisos si cambia una web o aparecen subdominios nuevos", CAT_GENERAL),
     ToolEntry(Routes.BATCH_QUERY, "Consulta por lotes", "Varios dominios/IPs a la vez, informe combinado", CAT_GENERAL),
     ToolEntry(Routes.SERVICE_HEALTH, "Estado de servicios", "Comprueba si las APIs externas usadas por la app están respondiendo", CAT_GENERAL),
@@ -317,6 +323,8 @@ private fun ToolboxNavigation() {
             composable(Routes.ENCODER) { EncoderScreen() }
             composable(Routes.PASSWORD) { PasswordScreen() }
             composable(Routes.HISTORY) { HistoryScreen() }
+            composable(Routes.CASE_GRAPH) { CaseGraphScreen() }
+            composable(Routes.SETTINGS) { SettingsScreen() }
 
             composable(Routes.CVE) { CveScreen() }
             composable(Routes.RSS) { RssScreen() }

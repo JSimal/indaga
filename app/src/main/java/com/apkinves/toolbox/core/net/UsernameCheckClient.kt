@@ -48,7 +48,7 @@ object UsernameCheckClient {
     }
 
     private fun checkExists(urlStr: String): Boolean {
-        val conn = URL(urlStr).openConnection() as HttpURLConnection
+        val conn = NetClient.openConnection(urlStr)
         conn.requestMethod = "GET"
         conn.connectTimeout = 6000
         conn.readTimeout = 6000

@@ -2,4 +2,6 @@
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- El APK descargado se guarda en la caché interna, en la subcarpeta "updates". -->
     <cache-path name="updates" path="updates/" />
+    <!-- Informes exportados (PDF/JSON/CSV) para compartir por Intent.EXTRA_STREAM. -->
+    <cache-path name="exports" path="exports/" />
 </paths>

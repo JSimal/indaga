@@ -13,7 +13,7 @@ object ReverseGeocodeClient {
     suspend fun reverseGeocode(lat: Double, lon: Double): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
             val url = "https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lon&zoom=16"
-            val conn = URL(url).openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection(url)
             conn.connectTimeout = 8000
             conn.readTimeout = 8000
             conn.setRequestProperty("User-Agent", "Indaga OSINT toolbox app")

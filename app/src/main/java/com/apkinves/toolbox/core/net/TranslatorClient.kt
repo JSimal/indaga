@@ -18,7 +18,7 @@ object TranslatorClient {
             runCatching {
                 val query = URLEncoder.encode(text.trim(), "UTF-8")
                 val url = "https://api.mymemory.translated.net/get?q=$query&langpair=$sourceLangCode|$targetLangCode"
-                val conn = URL(url).openConnection() as HttpURLConnection
+                val conn = NetClient.openConnection(url)
                 conn.connectTimeout = 8000
                 conn.readTimeout = 8000
                 val body = try {

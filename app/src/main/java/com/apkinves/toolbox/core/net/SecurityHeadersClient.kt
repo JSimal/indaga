@@ -21,7 +21,7 @@ object SecurityHeadersClient {
     suspend fun check(domain: String): Result<Report> = withContext(Dispatchers.IO) {
         runCatching {
             val target = if (domain.startsWith("http")) domain else "https://${domain.trim()}"
-            val conn = URL(target).openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection(target)
             conn.connectTimeout = 8000
             conn.readTimeout = 8000
             conn.requestMethod = "HEAD"

@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 fun TracerouteScreen() {
     var target by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("") }
+    var error by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -34,20 +35,26 @@ fun TracerouteScreen() {
         onInputChange = { target = it },
         loading = loading,
         extraControls = { OpsecWarning() },
+        error = error,
         onRun = {
             loading = true
+            error = ""
+            result = ""
             scope.launch {
                 val host = target.trim()
                 val probe = runCatching { TracerouteClient.probe(host) }.getOrNull()
-                result = if (probe == null) {
-                    "Error al resolver o contactar con $host"
-                } else if (probe.reachable) {
-                    "$host es alcanzable.\nLatencia: ${probe.rttMs} ms"
+                if (probe == null) {
+                    error = "Error al resolver o contactar con $host"
                 } else {
-                    "$host no respondió en el tiempo de espera (puede estar caído, filtrado por firewall, o el sistema no permite ICMP)."
+                    result = if (probe.reachable) {
+                        "$host es alcanzable.\nLatencia: ${probe.rttMs} ms"
+                    } else {
+                        "$host no respondió en el tiempo de espera (puede estar caído, filtrado por firewall, o el sistema no permite ICMP)."
+                    }
                 }
                 loading = false
-                repo.add("Conectividad", host, result.lineSequence().first(), result)
+                val summary = error.ifBlank { result }.lineSequence().first()
+                repo.add("Conectividad", host, summary, error.ifBlank { result })
             }
         },
     ) {

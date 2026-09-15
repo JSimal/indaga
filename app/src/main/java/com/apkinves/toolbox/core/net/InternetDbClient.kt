@@ -30,7 +30,7 @@ object InternetDbClient {
 
     suspend fun lookup(ip: String): InternetDbInfo? = cache.getOrFetch(ip) {
         withContext(Dispatchers.IO) {
-            val conn = URL("https://internetdb.shodan.io/$ip").openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection("https://internetdb.shodan.io/$ip")
             conn.connectTimeout = 6000
             conn.readTimeout = 8000
             try {

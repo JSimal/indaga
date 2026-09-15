@@ -62,7 +62,7 @@ object CurrencyClient {
     private suspend fun fetchUsdRate(date: LocalDate?): Double? = withContext(Dispatchers.IO) {
         runCatching {
             val path = date?.format(dateFormatter) ?: "latest"
-            val conn = URL("https://api.frankfurter.app/$path?from=EUR&to=USD").openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection("https://api.frankfurter.app/$path?from=EUR&to=USD")
             conn.connectTimeout = 8000
             conn.readTimeout = 8000
             conn.instanceFollowRedirects = true
@@ -83,7 +83,7 @@ object CurrencyClient {
             } else {
                 "https://api.coingecko.com/api/v3/coins/$coinId/history?date=${date.format(coinGeckoDateFormatter)}&localization=false"
             }
-            val conn = URL(url).openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection(url)
             conn.connectTimeout = 10000
             conn.readTimeout = 10000
             val body = try {

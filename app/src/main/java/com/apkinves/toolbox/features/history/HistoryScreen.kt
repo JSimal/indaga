@@ -14,11 +14,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.apkinves.toolbox.core.util.ExportUtils
 import com.apkinves.toolbox.data.CaseRepository
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -32,6 +35,20 @@ fun HistoryScreen() {
     val entries by repo.entries.collectAsState()
     val scope = rememberCoroutineScope()
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
+    var lastCustody by remember { mutableStateOf<String?>(null) }
+
+    fun shareFile(exported: ExportUtils.ExportedFile, mimeType: String) {
+        val uri = ExportUtils.uriFor(context, exported.file)
+        val custodyText = "SHA-256: ${exported.sha256}\nGenerado: ${dateFormat.format(Date(exported.timestamp))}"
+        lastCustody = custodyText
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = mimeType
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_TEXT, custodyText)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        runCatching { context.startActivity(Intent.createChooser(intent, "Compartir informe")) }
+    }
 
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Historial / Caso de investigación", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
@@ -49,7 +66,33 @@ fun HistoryScreen() {
             },
             enabled = entries.isNotEmpty(),
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Compartir informe") }
+        ) { Text("Compartir informe (Markdown)") }
+
+        Button(
+            onClick = { shareFile(ExportUtils.exportPdf(context, entries), "application/pdf") },
+            enabled = entries.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Exportar PDF") }
+
+        Button(
+            onClick = { shareFile(ExportUtils.exportJson(context, entries), "application/json") },
+            enabled = entries.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Exportar JSON") }
+
+        Button(
+            onClick = { shareFile(ExportUtils.exportCsv(context, entries), "text/csv") },
+            enabled = entries.isNotEmpty(),
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Exportar CSV") }
+
+        lastCustody?.let {
+            Text(
+                "Cadena de custodia del último export:\n$it",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
         Button(onClick = { scope.launch { repo.clear() } }, modifier = Modifier.fillMaxWidth()) {
             Text("Borrado seguro del historial (irreversible)")

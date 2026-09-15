@@ -60,7 +60,7 @@ fun LocalNetScreen() {
             enabled = !loading,
             modifier = Modifier.fillMaxWidth(),
         ) { Text(if (loading) "Escaneando..." else "Escanear red local") }
-        if (loading) CircularProgressIndicator()
+        if (loading) CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         ResultBlock(result)
     }
 }

@@ -28,7 +28,7 @@ object PhishingFeedClient {
 
     private suspend fun fetchFeed(): String = cache.getOrFetch(FEED_URL) {
         withContext(Dispatchers.IO) {
-            val conn = URL(FEED_URL).openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection(FEED_URL)
             conn.connectTimeout = 8000
             conn.readTimeout = 10000
             conn.instanceFollowRedirects = true

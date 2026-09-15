@@ -93,7 +93,7 @@ fun WifiScanScreen() {
             ) { Text(if (loading) "Escaneando..." else "Escanear WiFi cercanas") }
         }
 
-        if (loading) CircularProgressIndicator()
+        if (loading) CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         ResultBlock(result)
     }
 }

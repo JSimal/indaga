@@ -11,7 +11,7 @@ object SiteFilesClient {
 
     suspend fun fetch(domain: String, path: String): FetchResult = withContext(Dispatchers.IO) {
         val base = if (domain.startsWith("http")) domain.trimEnd('/') else "https://${domain.trim().trimEnd('/')}"
-        val conn = URL("$base/$path").openConnection() as HttpURLConnection
+        val conn = NetClient.openConnection("$base/$path")
         conn.connectTimeout = 6000
         conn.readTimeout = 6000
         conn.instanceFollowRedirects = true

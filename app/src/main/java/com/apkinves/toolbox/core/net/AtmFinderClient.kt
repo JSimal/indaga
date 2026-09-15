@@ -39,7 +39,7 @@ object AtmFinderClient {
             runCatching {
                 val query = "[out:json][timeout:15];node[\"amenity\"=\"atm\"](around:$radiusMeters,$lat,$lon);out body;"
                 val encoded = URLEncoder.encode(query, "UTF-8")
-                val conn = URL("https://overpass-api.de/api/interpreter?data=$encoded").openConnection() as HttpURLConnection
+                val conn = NetClient.openConnection("https://overpass-api.de/api/interpreter?data=$encoded")
                 conn.connectTimeout = 12000
                 conn.readTimeout = 12000
                 val body = try {

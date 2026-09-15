@@ -65,7 +65,7 @@ object CveClient {
         runCatching {
             val encoded = URLEncoder.encode(keyword.trim(), "UTF-8")
             val url = "https://services.nvd.nist.gov/rest/json/cves/2.0?keywordSearch=$encoded&resultsPerPage=$maxResults"
-            val conn = URL(url).openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection(url)
             conn.connectTimeout = 10_000
             conn.readTimeout = 15_000
             val body = try {

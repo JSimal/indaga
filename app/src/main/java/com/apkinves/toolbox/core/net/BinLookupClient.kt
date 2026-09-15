@@ -32,7 +32,7 @@ object BinLookupClient {
 
     suspend fun lookup(bin: String): Result<BinInfo> = withContext(Dispatchers.IO) {
         runCatching {
-            val conn = URL("https://lookup.binlist.net/${bin.trim()}").openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection("https://lookup.binlist.net/${bin.trim()}")
             conn.connectTimeout = 6000
             conn.readTimeout = 6000
             conn.setRequestProperty("Accept-Version", "3")

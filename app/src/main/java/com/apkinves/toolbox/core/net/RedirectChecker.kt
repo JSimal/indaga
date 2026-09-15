@@ -14,7 +14,7 @@ object RedirectChecker {
         var current = if (startUrl.startsWith("http")) startUrl else "https://$startUrl"
 
         repeat(maxHops) {
-            val conn = URL(current).openConnection() as HttpURLConnection
+            val conn = NetClient.openConnection(current)
             conn.connectTimeout = 6000
             conn.readTimeout = 6000
             conn.instanceFollowRedirects = false

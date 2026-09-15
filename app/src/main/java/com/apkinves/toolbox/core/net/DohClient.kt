@@ -23,7 +23,7 @@ object DohClient {
     private val json = Json { ignoreUnknownKeys = true }
 
     suspend fun query(domain: String, type: DnsClient.RecordType): List<DnsClient.DnsRecord> = withContext(Dispatchers.IO) {
-        val conn = URL("https://dns.google/resolve?name=${domain.trim()}&type=${type.name}").openConnection() as HttpURLConnection
+        val conn = NetClient.openConnection("https://dns.google/resolve?name=${domain.trim()}&type=${type.name}")
         conn.connectTimeout = 8000
         conn.readTimeout = 8000
         conn.setRequestProperty("Accept", "application/dns-json")
