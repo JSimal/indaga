@@ -294,9 +294,6 @@ private fun ToolboxNavigation() {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { AppLockPreference.setEnabled(context, !AppLockPreference.enabled) }) {
-                        Text(if (AppLockPreference.enabled) "🔒" else "🔓", style = MaterialTheme.typography.titleMedium)
-                    }
                     IconButton(onClick = { com.apkinves.toolbox.ui.theme.ThemePreference.cycle(context) }) {
                         Text(com.apkinves.toolbox.ui.theme.ThemePreference.icon(), style = MaterialTheme.typography.titleMedium)
                     }

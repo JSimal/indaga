@@ -22,8 +22,8 @@ android {
         applicationId = "com.apkinves.toolbox"
         minSdk = 26
         targetSdk = 34
-        versionCode = 28
-        versionName = "0.3.8"
+        versionCode = 29
+        versionName = "0.3.9"
 
         // La app solo tiene textos en español; esto descarta los recursos de
         // idioma que las librerías (Compose/Material3/Navigation) incluyen
@@ -96,11 +96,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     implementation("androidx.work:work-runtime-ktx:2.9.1")
 
-    // Cifrado del historial de casos (datos de investigacion) y bloqueo de la
-    // app por huella/PIN: ambas son librerias oficiales de Jetpack, ligeras,
-    // la unica forma correcta de hacer esto sin montar un esquema propio.
+    // Cifrado del historial de casos (datos de investigacion): libreria
+    // oficial de Jetpack, ligera, la unica forma correcta de hacer esto sin
+    // montar un esquema propio.
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
-    implementation("androidx.biometric:biometric:1.1.0")
 
     // Google Code Scanner: escaneo de QR/códigos de barras gestionado por
     // Play Services en su propia actividad. Ligero porque no empaqueta
