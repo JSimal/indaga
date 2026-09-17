@@ -27,6 +27,7 @@ import com.apkinves.toolbox.core.unified.InputKind
 import com.apkinves.toolbox.core.unified.UnifiedQueryEngine
 import com.apkinves.toolbox.core.unified.UnifiedReport
 import com.apkinves.toolbox.core.unified.detectKind
+import com.apkinves.toolbox.core.unified.normalizeTarget
 import com.apkinves.toolbox.ui.common.OpsecWarning
 import com.apkinves.toolbox.ui.common.UnifiedSummaryCards
 import kotlinx.coroutines.launch
@@ -63,7 +64,7 @@ fun BatchQueryScreen() {
         )
         Button(
             onClick = {
-                val targets = input.lineSequence().map { it.trim() }.filter { it.isNotBlank() }.distinct().toList()
+                val targets = input.lineSequence().map { normalizeTarget(it) }.filter { it.isNotBlank() }.distinct().toList()
                 if (targets.isEmpty()) return@Button
                 loading = true
                 error = ""

@@ -40,6 +40,20 @@ fun detectKind(value: String): InputKind = when {
     else -> InputKind.UNKNOWN
 }
 
+/**
+ * Si el usuario pega una URL completa en vez de un dominio/IP suelto (ej.
+ * "https://ejemplo.com/ruta"), hay que quitarle el esquema y la ruta antes
+ * de usarlo: si no, tanto las consultas (RDAP/WHOIS/DNS...) como los
+ * enlaces externos que se abren después (ScamAdviser, dorks...) quedan mal
+ * formados y el usuario tiene que volver a escribir el dominio a mano.
+ */
+fun normalizeTarget(raw: String): String {
+    var v = raw.trim()
+    v = v.removePrefix("https://").removePrefix("http://")
+    v = v.substringBefore("/").substringBefore("?").substringBefore("#")
+    return v.trim()
+}
+
 data class UnifiedReport(
     val target: String,
     val kind: InputKind,

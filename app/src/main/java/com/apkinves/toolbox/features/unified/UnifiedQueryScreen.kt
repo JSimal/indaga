@@ -25,6 +25,7 @@ import com.apkinves.toolbox.core.unified.InputKind
 import com.apkinves.toolbox.core.unified.UnifiedQueryEngine
 import com.apkinves.toolbox.core.unified.UnifiedReport
 import com.apkinves.toolbox.core.unified.detectKind
+import com.apkinves.toolbox.core.unified.normalizeTarget
 import com.apkinves.toolbox.data.CaseRepository
 import com.apkinves.toolbox.ui.Routes
 import com.apkinves.toolbox.ui.common.ResultBlock
@@ -61,7 +62,8 @@ fun UnifiedQueryScreen(navController: NavHostController? = null) {
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
         )
-        fun runQuery(value: String) {
+        fun runQuery(rawValue: String) {
+            val value = normalizeTarget(rawValue)
             val kind = detectKind(value)
             if (kind == InputKind.UNKNOWN) {
                 errorText = "No se reconoce como IP ni como dominio."

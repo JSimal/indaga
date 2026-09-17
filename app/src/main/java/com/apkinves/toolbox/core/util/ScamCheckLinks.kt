@@ -13,7 +13,10 @@ object ScamCheckLinks {
     )
 
     fun urlFor(site: Site, domain: String): String {
-        val encoded = URLEncoder.encode(domain.trim(), "UTF-8")
+        val clean = domain.trim()
+            .removePrefix("https://").removePrefix("http://")
+            .substringBefore("/").substringBefore("?").substringBefore("#")
+        val encoded = URLEncoder.encode(clean, "UTF-8")
         return site.urlTemplate.format(encoded)
     }
 }
