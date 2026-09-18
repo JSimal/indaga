@@ -164,11 +164,8 @@ val TOOLS = listOf(
     ToolEntry(Routes.UNIFIED, "Info Dominios Web", "WHOIS, DNS, hosting, puertos, SSL, subdominios, tecnologías, email, listas negras, dominios parecidos, fraude/scam, dorks y más", CAT_GENERAL),
     ToolEntry(Routes.HISTORY, "Historial / Caso", "Consultas guardadas, exportación PDF/JSON/CSV con hash de custodia", CAT_GENERAL),
     ToolEntry(Routes.CASE_GRAPH, "Correlación de casos", "IPs y dominios que se repiten entre distintas consultas guardadas", CAT_GENERAL),
-    ToolEntry(Routes.SETTINGS, "Ajustes", "Proxy SOCKS5 / Tor para las consultas de red", CAT_GENERAL),
     ToolEntry(Routes.WATCHLIST, "Vigilancia", "Avisos si cambia una web o aparecen subdominios nuevos", CAT_GENERAL),
     ToolEntry(Routes.BATCH_QUERY, "Consulta por lotes", "Varios dominios/IPs a la vez, informe combinado", CAT_GENERAL),
-    ToolEntry(Routes.SERVICE_HEALTH, "Estado de servicios", "Comprueba si las APIs externas usadas por la app están respondiendo", CAT_GENERAL),
-    ToolEntry(Routes.NAME_GENERATOR, "Generador de nombres", "Palabra por temática traducida a idiomas poco habituales, + traductor libre", CAT_GENERAL),
 
     ToolEntry(Routes.RSS, "Lector RSS/Atom", "Feeds de un sitio", CAT_WEB),
     ToolEntry(Routes.EMAIL_VERIFY, "Verificador de email", "Sintaxis, MX, permutador de direcciones y analizador de cabeceras", CAT_WEB),
@@ -216,6 +213,9 @@ val TOOLS = listOf(
     ToolEntry(Routes.VIN_DECODER, "Decodificador VIN", "Fabricante, país y año de un número de bastidor", CAT_UTILIDADES),
     ToolEntry(Routes.TEXT_EXTRACTOR, "Extractor de enlaces/emails/teléfonos", "Saca esos datos de un texto pegado", CAT_UTILIDADES),
     ToolEntry(Routes.TEXT_DIFF, "Comparador de textos", "Diferencias línea a línea entre dos versiones", CAT_UTILIDADES),
+    ToolEntry(Routes.NAME_GENERATOR, "Generador de nombres", "Palabra por temática traducida a idiomas poco habituales, + traductor libre", CAT_UTILIDADES),
+    ToolEntry(Routes.SERVICE_HEALTH, "Estado de servicios", "Comprueba si las APIs externas usadas por la app están respondiendo", CAT_UTILIDADES),
+    ToolEntry(Routes.SETTINGS, "Ajustes", "Proxy SOCKS5 / Tor para las consultas de red", CAT_UTILIDADES),
 )
 
 @Composable
