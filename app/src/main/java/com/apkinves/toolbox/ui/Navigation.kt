@@ -276,6 +276,11 @@ private fun ToolboxNavigation() {
     val currentRoute = backStackEntry?.destination?.route ?: Routes.HOME
     val currentTitle = TOOLS.firstOrNull { it.route == currentRoute }?.title ?: "Indaga"
     val context = androidx.compose.ui.platform.LocalContext.current
+    val recentToolsRepo = remember { com.apkinves.toolbox.data.RecentToolsRepository(context) }
+
+    LaunchedEffect(currentRoute) {
+        if (currentRoute != Routes.HOME) recentToolsRepo.recordVisit(currentRoute)
+    }
 
     Scaffold(
         topBar = {

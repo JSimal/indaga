@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import com.apkinves.toolbox.BuildConfig
 import com.apkinves.toolbox.R
 import com.apkinves.toolbox.data.FavoritesRepository
+import com.apkinves.toolbox.data.RecentToolsRepository
 import com.apkinves.toolbox.features.update.ApkDownloader
 import com.apkinves.toolbox.features.update.ApkInstaller
 import com.apkinves.toolbox.features.update.DownloadState
@@ -57,6 +58,8 @@ fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
     val context = LocalContext.current
     val favoritesRepo = remember { FavoritesRepository(context) }
     val favorites by favoritesRepo.favorites.collectAsState()
+    val recentToolsRepo = remember { RecentToolsRepository(context) }
+    val recentRoutes by recentToolsRepo.recent.collectAsState()
     var updateAvailable by remember { mutableStateOf<UpdateResult.UpdateAvailable?>(null) }
     var query by remember { mutableStateOf("") }
     val expandedCategories = remember { mutableStateOf(setOf<String>()) }
@@ -70,6 +73,7 @@ fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
         it.title.contains(query, ignoreCase = true) || it.description.contains(query, ignoreCase = true)
     }
     val favoriteTools = tools.filter { it.route in favorites }
+    val recentTools = recentRoutes.mapNotNull { route -> tools.firstOrNull { it.route == route } }
     val grouped = filtered.groupBy { it.category }
 
     fun toggleCategory(category: String) {
@@ -109,6 +113,21 @@ fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
             }
             items(favoriteTools.chunked(2)) { pair ->
                 ToolCardRow(pair, com.apkinves.toolbox.ui.theme.CyberColors.NeonAmber, favorites, onToolClick) { favoritesRepo.toggle(it) }
+            }
+        }
+
+        if (query.isBlank() && recentTools.isNotEmpty()) {
+            item {
+                CategoryHeader(
+                    emoji = "🕘",
+                    title = "Usadas recientemente",
+                    color = com.apkinves.toolbox.ui.theme.CyberColors.NeonCyan,
+                    expanded = true,
+                    onClick = {},
+                )
+            }
+            items(recentTools.chunked(2)) { pair ->
+                ToolCardRow(pair, com.apkinves.toolbox.ui.theme.CyberColors.NeonCyan, favorites, onToolClick) { favoritesRepo.toggle(it) }
             }
         }
 
