@@ -12,6 +12,8 @@ object NameGenerator {
         CIBER("Ciber"),
         MITOLOGIA("Mitología"),
         ESPACIO("Espacio"),
+        ANIMALES("Animales"),
+        ELEMENTOS("Elementos"),
     }
 
     data class Language(val code: String, val label: String)
@@ -58,6 +60,29 @@ object NameGenerator {
         Language("pt", "Portugués"),
         Language("sk", "Eslovaco"),
         Language("sl", "Esloveno"),
+        Language("la", "Latín"),
+        Language("gd", "Gaélico escocés"),
+        Language("co", "Corso"),
+        Language("fy", "Frisón"),
+        Language("lb", "Luxemburgués"),
+        Language("oc", "Occitano"),
+        Language("bs", "Bosnio"),
+        Language("az", "Azerí"),
+        Language("uz", "Uzbeko"),
+        Language("ms", "Malayo"),
+        Language("su", "Sundanés"),
+        Language("ht", "Criollo haitiano"),
+        Language("ig", "Igbo"),
+        Language("ha", "Hausa"),
+        Language("rw", "Kinyarwanda"),
+        Language("st", "Sesoto"),
+        Language("sn", "Shona"),
+        Language("mg", "Malgache"),
+        Language("haw", "Hawaiano"),
+        Language("fj", "Fiyiano"),
+        Language("ny", "Chichewa"),
+        Language("tn", "Setsuana"),
+        Language("ts", "Tsonga"),
     )
 
     private val WORDS: Map<Theme, List<String>> = mapOf(
@@ -65,7 +90,9 @@ object NameGenerator {
             "despierto", "sombra", "fuego", "trueno", "estrella", "libertad", "silencio", "tormenta",
             "fantasma", "cazador", "guardián", "viajero", "eco", "relámpago", "aurora", "niebla",
             "espejo", "vigilante", "errante", "nómada", "centinela", "amanecer", "ocaso", "abismo",
-            "horizonte", "tempestad", "susurro", "refugio", "destino", "enigma",
+            "horizonte", "tempestad", "susurro", "refugio", "destino", "enigma", "raíz", "cumbre",
+            "corriente", "brasa", "marea", "cristal", "yunque", "brújula", "faro", "vértice",
+            "umbral", "semilla", "cauce", "cima", "hielo", "ceniza", "roca", "vendaval",
         ),
         Theme.PELICULAS to listOf(
             "redención", "venganza", "traición", "renacer", "fugitivo", "legado", "odisea", "vendetta",
@@ -95,17 +122,26 @@ object NameGenerator {
         Theme.CIBER to listOf(
             "cortafuegos", "núcleo", "intermediario", "carga", "fantasma", "cifrado", "vulnerabilidad",
             "puerta trasera", "intrusión", "anonimato", "encriptación", "rastro", "huella", "camuflaje",
-            "infiltración", "vigilancia", "contraseña", "protocolo", "nodo", "enjambre",
+            "infiltración", "vigilancia", "contraseña", "protocolo", "nodo", "enjambre", "brecha",
+            "exploit", "carnada", "señuelo", "escudo", "centinela", "búnker", "acceso", "eco",
         ),
         Theme.MITOLOGIA to listOf(
             "olimpo", "titán", "oráculo", "hidra", "cíclope", "minotauro", "quimera", "destino",
             "profecía", "inmortal", "divino", "sagrado", "maldición", "ofrenda", "templo", "guardián",
-            "leyenda", "origen",
+            "leyenda", "origen", "valhalla", "fénix", "sirena", "centauro", "walquiria", "esfinge",
         ),
         Theme.ESPACIO to listOf(
             "nebulosa", "cometa", "supernova", "meteoro", "galaxia", "eclipse", "órbita", "estelar",
             "cuásar", "constelación", "horizonte", "pulsar", "asteroide", "satélite", "cosmos", "vacío",
-            "infinito", "gravedad", "nova",
+            "infinito", "gravedad", "nova", "aurora", "solsticio", "eclíptica", "meridiano", "zenit",
+        ),
+        Theme.ANIMALES to listOf(
+            "lobo", "águila", "halcón", "pantera", "cuervo", "búho", "lince", "tiburón", "serpiente",
+            "escorpión", "jaguar", "cóndor", "zorro", "oso", "mantis", "avispa", "araña", "gavilán",
+        ),
+        Theme.ELEMENTOS to listOf(
+            "fuego", "hielo", "viento", "tierra", "rayo", "vapor", "azufre", "obsidiana", "cuarzo",
+            "magma", "escarcha", "polvo", "sal", "plomo", "hierro", "cobre", "arena", "rocío",
         ),
     )
 
