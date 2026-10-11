@@ -74,6 +74,8 @@ fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
     }
     val favoriteTools = tools.filter { it.route in favorites }
     val recentTools = recentRoutes.mapNotNull { route -> tools.firstOrNull { it.route == route } }
+    val priorityRoutes = listOf(Routes.UNIFIED, Routes.NAME_GENERATOR)
+    val priorityTools = priorityRoutes.mapNotNull { route -> tools.firstOrNull { it.route == route } }
     val grouped = filtered.groupBy { it.category }
 
     fun toggleCategory(category: String) {
@@ -99,6 +101,21 @@ fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
 
         updateAvailable?.let { update ->
             item { UpdateBanner(update) }
+        }
+
+        if (query.isBlank() && priorityTools.isNotEmpty()) {
+            item {
+                CategoryHeader(
+                    emoji = "🎯",
+                    title = "Acceso directo",
+                    color = com.apkinves.toolbox.ui.theme.CyberColors.NeonPurple,
+                    expanded = true,
+                    onClick = {},
+                )
+            }
+            items(priorityTools.chunked(2)) { pair ->
+                ToolCardRow(pair, com.apkinves.toolbox.ui.theme.CyberColors.NeonPurple, favorites, onToolClick) { favoritesRepo.toggle(it) }
+            }
         }
 
         if (query.isBlank() && favoriteTools.isNotEmpty()) {

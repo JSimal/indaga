@@ -35,6 +35,20 @@ fun UnifiedSummaryCards(
     fun openUrl(url: String) {
         runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
     }
+    InfoCard(title = "📌 Resumen rápido") {
+        val hostingLabel = r.hostingPattern
+            ?: r.ipInfo?.org?.ifBlank { r.ipInfo.isp }?.ifBlank { null }
+        InfoRow("Hosting", hostingLabel ?: "Sin datos")
+        InfoRow("Registrador del dominio", r.rdap?.registrar ?: "Sin datos")
+        val nsCandidates = r.rdap?.nameservers?.takeIf { it.isNotEmpty() }
+            ?: r.dnsRecords[com.apkinves.toolbox.core.net.DnsClient.RecordType.NS]?.map { it.value }
+        val dnsProvider = nsCandidates?.firstOrNull()?.let { ns ->
+            val parts = ns.trim('.').split(".")
+            if (parts.size >= 2) parts.takeLast(2).joinToString(".") else ns
+        }
+        InfoRow("Proveedor DNS", dnsProvider ?: "Sin datos")
+    }
+
     InfoCard(title = "📋 Registro del dominio/IP") {
         val rdap = r.rdap
         if (rdap == null) {
