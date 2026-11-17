@@ -24,6 +24,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,6 +40,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.apkinves.toolbox.BuildConfig
 import com.apkinves.toolbox.R
@@ -60,13 +62,20 @@ fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
     val favorites by favoritesRepo.favorites.collectAsState()
     val recentToolsRepo = remember { RecentToolsRepository(context) }
     val recentRoutes by recentToolsRepo.recent.collectAsState()
-    var updateAvailable by remember { mutableStateOf<UpdateResult.UpdateAvailable?>(null) }
+    // null mientras se comprueba. Antes solo se guardaba "hay actualización":
+    // estar al día y que la comprobación fallara (sin red, GitHub bloqueado,
+    // límite de peticiones) se veían igual — sin nada en pantalla.
+    var updateResult by remember { mutableStateOf<UpdateResult?>(null) }
+    val updateScope = rememberCoroutineScope()
+    fun buscarActualizaciones(forzar: Boolean) {
+        updateResult = null
+        updateScope.launch { updateResult = UpdateChecker.checkForUpdate(BuildConfig.VERSION_NAME, forzar) }
+    }
     var query by remember { mutableStateOf("") }
     val expandedCategories = remember { mutableStateOf(setOf<String>()) }
 
     LaunchedEffect(Unit) {
-        val result = UpdateChecker.checkForUpdate(BuildConfig.VERSION_NAME)
-        if (result is UpdateResult.UpdateAvailable) updateAvailable = result
+        updateResult = UpdateChecker.checkForUpdate(BuildConfig.VERSION_NAME)
     }
 
     val filtered = if (query.isBlank()) tools else tools.filter {
@@ -99,7 +108,7 @@ fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
             )
         }
 
-        updateAvailable?.let { update ->
+        (updateResult as? UpdateResult.UpdateAvailable)?.let { update ->
             item { UpdateBanner(update) }
         }
 
@@ -187,6 +196,24 @@ fun HomeScreenContent(tools: List<ToolEntry>, onToolClick: (String) -> Unit) {
             ) {
                 Text("▸ INDAGA v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 Text("Creado por Simal", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val (estado, colorEstado) = when (val r = updateResult) {
+                    null -> "Buscando actualizaciones…" to MaterialTheme.colorScheme.onSurfaceVariant
+                    is UpdateResult.UpToDate -> "✓ Estás al día (v${BuildConfig.VERSION_NAME} es la última)" to MaterialTheme.colorScheme.primary
+                    is UpdateResult.UpdateAvailable -> "Hay una versión nueva: ${r.release.tag_name} (botón arriba)" to MaterialTheme.colorScheme.primary
+                    is UpdateResult.Error -> "No se pudo comprobar si hay actualizaciones: ${r.message}" to MaterialTheme.colorScheme.error
+                }
+                Text(
+                    estado,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colorEstado,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+                if (updateResult != null) {
+                    TextButton(onClick = { buscarActualizaciones(forzar = true) }) {
+                        Text("Buscar actualizaciones", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
             }
         }
     }

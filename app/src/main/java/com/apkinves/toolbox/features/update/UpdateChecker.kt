@@ -45,8 +45,9 @@ object UpdateChecker {
     // petición de red cada vez que el usuario vuelve al menú principal.
     private var cachedResult: UpdateResult? = null
 
-    suspend fun checkForUpdate(currentVersionName: String): UpdateResult {
-        cachedResult?.let { return it }
+    /** forzar = true ignora el resultado guardado de esta sesión (botón "Buscar actualizaciones"). */
+    suspend fun checkForUpdate(currentVersionName: String, forzar: Boolean = false): UpdateResult {
+        if (!forzar) cachedResult?.let { return it }
         val result = fetchUpdate(currentVersionName)
         cachedResult = result
         return result
