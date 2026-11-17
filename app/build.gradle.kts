@@ -22,8 +22,8 @@ android {
         applicationId = "com.apkinves.toolbox"
         minSdk = 26
         targetSdk = 34
-        versionCode = 36
-        versionName = "0.3.16"
+        versionCode = 37
+        versionName = "0.3.17"
 
         // La app solo tiene textos en español; esto descarta los recursos de
         // idioma que las librerías (Compose/Material3/Navigation) incluyen

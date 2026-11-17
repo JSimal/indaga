@@ -39,6 +39,7 @@ import com.apkinves.toolbox.features.casegraph.CaseGraphScreen
 import com.apkinves.toolbox.features.cidr.CidrScreen
 import com.apkinves.toolbox.features.currency.CurrencyScreen
 import com.apkinves.toolbox.features.cve.CveScreen
+import com.apkinves.toolbox.features.directory.DirectoryScreen
 import com.apkinves.toolbox.features.emailverify.EmailVerifyScreen
 import com.apkinves.toolbox.features.encoder.EncoderScreen
 import com.apkinves.toolbox.features.exif.ExifScreen
@@ -82,6 +83,7 @@ import com.apkinves.toolbox.features.wifiscan.WifiScanScreen
 object Routes {
     const val HOME = "home"
     const val UNIFIED = "unified"
+    const val DIRECTORY = "directory"
     const val BATCH_QUERY = "batch_query"
     const val TRACEROUTE = "traceroute"
     const val CIDR = "cidr"
@@ -162,6 +164,7 @@ val CATEGORY_STYLES = mapOf(
 
 val TOOLS = listOf(
     ToolEntry(Routes.UNIFIED, "Info Dominios Web", "WHOIS, DNS, hosting, puertos, SSL, subdominios, tecnologías, email, listas negras, dominios parecidos, fraude/scam, dorks y más", CAT_GENERAL),
+    ToolEntry(Routes.DIRECTORY, "¿A quién requerir?", "Canal, plazos de conservación y requisitos de plataformas, exchanges, operadoras y bancos + petición de conservación lista para enviar", CAT_GENERAL),
     ToolEntry(Routes.HISTORY, "Historial / Caso", "Consultas guardadas, exportación PDF/JSON/CSV con hash de custodia", CAT_GENERAL),
     ToolEntry(Routes.CASE_GRAPH, "Correlación de casos", "IPs y dominios que se repiten entre distintas consultas guardadas", CAT_GENERAL),
     ToolEntry(Routes.WATCHLIST, "Vigilancia", "Avisos si cambia una web o aparecen subdominios nuevos", CAT_GENERAL),
@@ -317,6 +320,7 @@ private fun ToolboxNavigation() {
         ) {
             composable(Routes.HOME) { HomeScreen(navController) }
             composable(Routes.UNIFIED) { UnifiedQueryScreen(navController) }
+            composable(Routes.DIRECTORY) { DirectoryScreen() }
             composable(Routes.BATCH_QUERY) { BatchQueryScreen() }
             composable(Routes.SERVICE_HEALTH) { ServiceHealthScreen() }
             composable(Routes.TRACEROUTE) { TracerouteScreen() }
